@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VoiceLab — Words v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#080810;--s1:#10101e;--s2:#16162a;--s3:#1e1e34;
+  --accent:#6366f1;--accent2:#818cf8;--teal:#2dd4bf;
+  --amber:#f59e0b;--rose:#f43f5e;--green:#22c55e;
+  --text:#f0f0ff;--sub:#9090b0;--dim:#50506a;--border:#2a2a42;--r:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;max-width:500px;margin:0 auto;padding:0 0 80px;}
+
+.screen-header{padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between;}
+.screen-title{font-size:22px;font-weight:700;letter-spacing:-0.02em;}
+.badge{background:var(--s3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--sub);font-family:'JetBrains Mono',monospace;}
+
+.tabs{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.tab.active{background:var(--accent);border-color:var(--accent);color:white;}
+
+.section-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.12em;padding:12px 16px 6px;}
+
+/* PROGRESS */
+.prog-wrap{padding:0 16px 12px;}
+.prog-track{height:3px;background:var(--s2);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.4s;}
+.prog-lbl{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim);margin-top:5px;}
+
+/* WORD CARDS */
+.word-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.wcard{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.wcard.done{border-color:#1a3a20;background:#0a1410;}
+.wcard.open{border-color:var(--accent);}
+.wcard-top{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.wcard-left{flex:1;}
+.wcard-word{font-size:22px;font-weight:700;line-height:1;}
+.wcard.done .wcard-word{color:var(--green);}
+.wcard-meta{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;}
+.wcard-syl{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2);}
+.wcard-ipa{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:var(--s2);padding:2px 7px;border-radius:4px;}
+.wcard-check{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--dim);flex-shrink:0;transition:all 0.2s;}
+.wcard.done .wcard-check{background:var(--green);border-color:var(--green);color:#000;}
+
+.wcard-expand{display:none;border-top:1px solid var(--border);padding:14px 16px;}
+.wcard.open .wcard-expand{display:block;}
+
+/* SYLLABLE BREAKDOWN */
+.syl-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
+.syl-row{display:flex;gap:0;margin-bottom:10px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.syl-block{flex:1;padding:10px 8px;background:var(--s2);text-align:center;border-right:1px solid var(--border);}
+.syl-block:last-child{border-right:none;}
+.syl-block.stressed{background:var(--s3);border-top:2px solid var(--accent);}
+.syl-text{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text);}
+.syl-block.stressed .syl-text{color:var(--accent2);}
+.syl-stress-dot{font-size:8px;color:var(--accent);margin-bottom:2px;visibility:hidden;}
+.syl-block.stressed .syl-stress-dot{visibility:visible;}
+
+/* SOUND ROWS */
+.sound-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
+.snd-row{background:var(--s2);border-radius:9px;padding:10px 12px;border-left:3px solid var(--border);}
+.snd-row.voiced-row{border-left-color:var(--green);}
+.snd-row.voiceless-row{border-left-color:var(--rose);}
+.snd-row.vowel-row{border-left-color:var(--teal);}
+.snd-row.nasal-row{border-left-color:var(--amber);}
+.snd-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:5px;}
+.snd-syl{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--amber);min-width:42px;flex-shrink:0;}
+.snd-right{flex:1;}
+.snd-ipa{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);background:var(--bg);padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;}
+.snd-anchor{font-size:13px;color:var(--text);font-weight:500;margin-bottom:3px;}
+.snd-anchor span{color:var(--accent2);font-weight:600;}
+.snd-how{font-size:12px;color:var(--sub);line-height:1.45;}
+.snd-type{font-size:9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;padding:2px 6px;border-radius:10px;display:inline-block;margin-top:4px;}
+.type-vowel{background:#0a2a30;color:var(--teal);}
+.type-voiced{background:#0a2a1a;color:var(--green);}
+.type-voiceless{background:#2a0a10;color:var(--rose);}
+.type-nasal{background:#2a1f0a;color:var(--amber);}
+.type-approx{background:#1a1a2a;color:var(--accent2);}
+
+.hear-btn{margin-top:10px;padding:10px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--accent2);font-size:13px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;}
+.hear-btn:active{background:var(--s3);}
+
+/* LEVEL NOTE */
+.level-note{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:13px;color:var(--sub);line-height:1.5;}
+
+/* DONE MSG */
+.done-msg{margin:16px 0;background:#0a1810;border:1px solid #1a3a20;border-radius:var(--r);padding:20px;text-align:center;display:none;}
+.done-msg-emoji{font-size:28px;margin-bottom:8px;}
+.done-msg-title{font-size:15px;font-weight:600;color:var(--green);}
+.done-msg-sub{font-size:12px;color:var(--sub);margin-top:4px;}
+
+/* SOUND LIBRARY */
+.sound-row{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin:0 16px 10px;overflow:hidden;}
+.sound-row-header{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.sound-symbol{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;min-width:52px;text-align:left;}
+.sound-anchor-word{font-size:14px;font-weight:600;margin-bottom:1px;}
+.sound-ipa-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:var(--s2);padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:3px;}
+.sound-note{font-size:12px;color:var(--sub);}
+.sound-body{display:none;border-top:1px solid var(--border);padding:14px 16px;}
+.sound-row.open .sound-body{display:block;}
+.mouth-tip{background:var(--s3);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--sub);line-height:1.5;border-left:3px solid var(--amber);margin-bottom:10px;}
+.sound-words{display:flex;flex-wrap:wrap;gap:6px;}
+.sound-word-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;}
+.sound-word-btn:active{background:var(--s3);}
+
+/* CONFUSED PAIRS */
+.pair-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin:0 16px 10px;overflow:hidden;}
+.pair-header{padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.pair-title{font-size:14px;font-weight:600;}
+.pair-sub{font-size:12px;color:var(--sub);margin-top:2px;}
+.pair-body{display:none;border-top:1px solid var(--border);padding:14px 16px;}
+.pair-box.open .pair-body{display:block;}
+.pair-col-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.pair-col{background:var(--s2);border-radius:8px;padding:12px;}
+.pair-col-title{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.pair-col-ipa{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--teal);margin-bottom:4px;}
+.pair-col-anchor{font-size:13px;color:var(--text);font-weight:500;margin-bottom:4px;}
+.pair-col-desc{font-size:12px;color:var(--sub);line-height:1.4;}
+.pair-words{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.pair-word-btn{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:13px;color:var(--text);cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="screen-header">
+  <div class="screen-title">VoiceLab Words</div>
+  <div class="badge" id="statBadge" style="font-family:'JetBrains Mono',monospace;">0 done</div>
+</div>
+
+<div class="tabs" id="mainTabs">
+  <button class="tab active" onclick="switchTab(0)">Daily Words</button>
+  <button class="tab" onclick="switchTab(1)">Sound Library</button>
+  <button class="tab" onclick="switchTab(2)">Confused Pairs</button>
+</div>
+
+<!-- DAILY WORDS -->
+<div id="tab-words">
+  <div class="tabs" id="dayTabs"></div>
+  <div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-lbl" id="progLbl">0 of 5 practiced</div>
+  </div>
+  <div class="word-list" id="wordList"></div>
+  <div class="done-msg" id="doneMsg">
+    <div class="done-msg-emoji">🎯</div>
+    <div class="done-msg-title">All words practiced!</div>
+    <div class="done-msg-sub">Come back tomorrow. Consistency is everything.</div>
+  </div>
+</div>
+
+<!-- SOUND LIBRARY -->
+<div id="tab-sounds" style="display:none;">
+  <div class="section-label">Vowel Sounds</div>
+  <div id="vowelRows"></div>
+  <div class="section-label">Consonant Sounds</div>
+  <div id="consonantRows"></div>
+</div>
+
+<!-- CONFUSED PAIRS -->
+<div id="tab-pairs" style="display:none;">
+  <div style="padding:12px 16px 4px;font-size:13px;color:var(--sub);line-height:1.5;">Sounds that share the same spelling but sound completely different. Tap each pair to see the difference.</div>
+  <div id="confusedPairs"></div>
+</div>
+
+<script>
+// ===================== SOUND LIBRARY =====================
+const vowelSounds = [
+  { symbol:'iː', anchor:'EE', anchorWords:'see / me / feet / need', ipa:'/iː/', note:'Long, stretched — hold it', mouth:'Lips spread wide like a big smile. Tongue high and pushed forward. Hold the sound — it is long. The longest vowel in English.', words:['see','me','feet','need','green','sleep','teeth','keep','feel','mean'] },
+  { symbol:'ʊ', anchor:'Short OO', anchorWords:'book / good / look / cook', ipa:'/ʊ/', note:'Short, loose round — NOT like food', mouth:'Lips round LOOSELY — not pushed forward tight. Very short. More relaxed than the long OO. This is the sound in good, book, foot, put, could, would, should.', words:['book','good','look','cook','foot','put','full','pull','could','would'] },
+  { symbol:'uː', anchor:'Long OO', anchorWords:'food / moon / blue / move', ipa:'/uː/', note:'Long, tight round — lips push forward', mouth:'Lips round and push forward like a kiss. Tongue high and back. Long sustained sound. Completely different from the short OO in book.', words:['food','moon','blue','move','true','you','do','who','rule','cool'] },
+  { symbol:'ɪ', anchor:'Short IH', anchorWords:'sit / bit / tip / fish', ipa:'/ɪ/', note:'Short, quick — not like EE', mouth:'Lips slightly spread, very relaxed. Tongue high but not tense. Very short — it disappears fast. Common in unstressed syllables.', words:['sit','bit','tip','pick','fish','ship','hill','fill','give','this'] },
+  { symbol:'e', anchor:'Short EH', anchorWords:'bed / red / best / ten', ipa:'/e/', note:'Short, open — jaw drops a little', mouth:'Jaw drops slightly. Lips relaxed, not spread. Tongue in the middle height. Say it quickly — it is a short sound.', words:['bed','red','best','ten','left','next','get','set','help','tell'] },
+  { symbol:'æ', anchor:'Wide AH', anchorWords:'cat / bad / man / back', ipa:'/æ/', note:'Wide open jaw — the most open short vowel', mouth:'Jaw drops WIDE — wider than you think. Tongue low and pushed forward. Lips barely move. This is the sound in cat, bad, man, back, plan.', words:['cat','bad','man','back','hand','past','ask','fast','black','plan'] },
+  { symbol:'ɑː', anchor:'Long AH', anchorWords:'father / car / calm / far', ipa:'/ɑː/', note:'Deep open — jaw wide, tongue back', mouth:'Jaw drops wide open. Tongue low and BACK (different from the forward AH in cat). Lips relaxed. Long sound — feel it in your chest.', words:['father','car','calm','far','heart','art','garden','park','dark','barn'] },
+  { symbol:'ɔː', anchor:'AW', anchorWords:'ball / walk / talk / all', ipa:'/ɔː/', note:'Round and open — lips slightly round', mouth:'Lips round slightly. Jaw drops and back. Tongue low and back. Long and round. This is the sound in ball, walk, talk, call, saw.', words:['ball','walk','talk','call','fall','small','tall','hall','all','saw'] },
+  { symbol:'ʌ', anchor:'Short UH', anchorWords:'cup / but / love / fun', ipa:'/ʌ/', note:'Central, short — the most common vowel', mouth:'Jaw half open. Tongue in the CENTER of the mouth. Completely relaxed. This is the most common vowel sound in English — it appears in almost every unstressed syllable.', words:['cup','but','love','fun','run','come','some','done','sun','jump'] },
+  { symbol:'ə', anchor:'Schwa', anchorWords:'the / about / system / happen', ipa:'/ə/', note:'Unstressed UH — barely there', mouth:'The most common sound in English. Same as short UH but even lighter. Appears in ALL unstressed syllables. The A in about, the E in happen, the O in person — all schwa.', words:['the','about','happen','system','person','supply','again','open','taken','lesson'] },
+  { symbol:'eɪ', anchor:'AY glide', anchorWords:'say / may / late / name', ipa:'/eɪ/', note:'Glide from EH up to EE', mouth:'Start with jaw half open like short EH. Tongue glides up and forward into EE position. Two movements in one — do not stop in the middle. It is a glide.', words:['say','may','late','name','game','place','face','day','pay','wait'] },
+  { symbol:'aɪ', anchor:'EYE glide', anchorWords:'my / night / time / like', ipa:'/aɪ/', note:'Glide from wide AH to EE', mouth:'Start with jaw WIDE open like the AH in father. Glide up and close into EE position. A big movement — wide open to narrow. This is a long, dramatic glide.', words:['my','night','time','like','right','side','wide','mind','kind','fine'] },
+  { symbol:'əʊ', anchor:'OH glide', anchorWords:'go / home / no / note', ipa:'/əʊ/', note:'Glide from UH to OO', mouth:'Start with lips in relaxed UH position. Round lips and glide toward long OO. A round glide — from neutral to rounded. This is the OH sound in go, home, no.', words:['go','home','no','note','bone','show','row','know','hold','phone'] },
+  { symbol:'aʊ', anchor:'OW glide', anchorWords:'now / out / how / down', ipa:'/aʊ/', note:'Glide from wide AH to OO', mouth:'Start with jaw wide open like the AH in father. Round lips and close toward long OO. A big dramatic glide from wide open to round. This is the OW in now, out, how.', words:['now','out','how','down','found','mouth','loud','south','cloud','count'] },
+  { symbol:'ɔɪ', anchor:'OY glide', anchorWords:'boy / oil / coin / voice', ipa:'/ɔɪ/', note:'Glide from AW to EE', mouth:'Start with lips in round AW position like ball. Spread lips into EE position. Round to spread movement. This is the OY in boy, oil, coin.', words:['boy','oil','coin','join','noise','point','voice','choice','toy','joy'] },
+  { symbol:'ɪə', anchor:'EER glide', anchorWords:'here / near / ear / fear', ipa:'/ɪə/', note:'Short IH then relaxed ER', mouth:'Start with short IH position. Tongue then glides back into a relaxed ER position. Common before the letter R.', words:['here','near','ear','fear','clear','really','theory','period','serious','experience'] },
+];
+
+const consonantSounds = [
+  { symbol:'p', anchor:'P', anchorWords:'pop / pay / cup / step', ipa:'/p/', note:'Lips together, air burst — no voice', mouth:'Press lips FULLY together. Build air pressure behind them. Release with a burst of air. NO vibration in throat at all. Put hand in front of mouth — you should feel a puff of air.', words:['pop','pay','cup','park','step','help','people','happy','open','upon'] },
+  { symbol:'b', anchor:'B', anchorWords:'bet / ball / cub / baby', ipa:'/b/', note:'Lips together, air burst — WITH voice', mouth:'Same as P — press lips fully together. But add VOICE vibration in your throat as you release. Hand on throat — you should feel buzzing. P and B are identical except for voice.', words:['bet','ball','cub','back','baby','job','above','public','number','table'] },
+  { symbol:'t', anchor:'T', anchorWords:'top / ten / cat / stop', ipa:'/t/', note:'Tongue tip on ridge, air burst — no voice', mouth:'Touch tongue tip FIRMLY to the ridge just behind upper front teeth. Build pressure. Release with a sharp burst. No throat vibration. A crisp, clean sound.', words:['top','ten','cat','take','stop','what','better','city','water','little'] },
+  { symbol:'d', anchor:'D', anchorWords:'dog / day / bed / under', ipa:'/d/', note:'Tongue tip on ridge — WITH voice', mouth:'Same tongue position as T — ridge behind upper teeth. Add voice vibration. Softer release than T. T and D are identical except for voice.', words:['dog','day','bed','down','under','body','ready','cloud','hand','world'] },
+  { symbol:'k', anchor:'K', anchorWords:'cat / cool / back / clock', ipa:'/k/', note:'Back of tongue on soft palate — no voice', mouth:'Back of tongue touches the SOFT PALATE — the soft part at the very back of the roof of your mouth. Release with a burst from the throat area. No voice.', words:['cat','cool','back','keep','skin','fact','black','clock','truck','neck'] },
+  { symbol:'ɡ', anchor:'G', anchorWords:'go / girl / big / again', ipa:'/ɡ/', note:'Back of tongue on soft palate — WITH voice', mouth:'Same back-tongue position as K. Add voice vibration. Softer, more resonant than K. K and G are identical except for voice.', words:['go','girl','big','game','again','dog','leg','bag','ago','hungry'] },
+  { symbol:'f', anchor:'F', anchorWords:'fun / off / safe / face', ipa:'/f/', note:'Upper teeth on lower lip — no voice', mouth:'Rest upper FRONT TEETH lightly on LOWER LIP. Push a steady stream of air through the gap. No vibration at all. A continuous rushing sound.', words:['fun','off','safe','face','from','left','after','often','life','off'] },
+  { symbol:'v', anchor:'V', anchorWords:'van / love / five / very', ipa:'/v/', note:'Upper teeth on lower lip — WITH voice', mouth:'Same teeth-on-lip position as F. Add VOICE — feel the buzz on your lip and in your throat. F and V are identical except for voice.', words:['van','love','five','very','have','live','move','give','voice','above'] },
+  { symbol:'s', anchor:'S', anchorWords:'see / his / face / some', ipa:'/s/', note:'Tongue near teeth, hiss — no voice', mouth:'Tongue tip near but NOT touching the back of upper teeth. Push air through the narrow gap. A steady sustained hiss. No vibration.', words:['see','his','face','some','last','most','class','also','first','just'] },
+  { symbol:'z', anchor:'Z', anchorWords:'zoo / has / please / because', ipa:'/z/', note:'Tongue near teeth, buzz — WITH voice', mouth:'Same tongue position as S. Add voice — the hiss becomes a BUZZ like a bee. Feel it in your throat. S and Z are identical except for voice.', words:['zoo','has','please','because','easy','always','music','those','was','as'] },
+  { symbol:'ʃ', anchor:'SH', anchorWords:'she / wish / push / show', ipa:'/ʃ/', note:'Tongue back, lips slightly forward', mouth:'Tongue moves slightly BACK from S position. Lips move forward very slightly — not as far as long OO. A steady rushing sound, softer and lower than S.', words:['she','wish','push','show','should','fish','wash','machine','fashion','short'] },
+  { symbol:'ʒ', anchor:'ZH', anchorWords:'measure / vision / usual', ipa:'/ʒ/', note:'Tongue back, lips slightly forward — WITH voice', mouth:'Same position as SH. Add VOICE. Like a buzzing SH. Appears in words like measure, vision, usual, television. Rare in English but important.', words:['measure','vision','usual','television','pleasure','treasure','garage','beige','rouge','azure'] },
+  { symbol:'θ', anchor:'TH (soft)', anchorWords:'think / three / math / both', ipa:'/θ/', note:'Tongue between teeth — no voice', mouth:'Stick the very TIP of your tongue gently between your teeth — or just behind them. Push air through. No vibration at all. Like blowing air between your teeth.', words:['think','three','math','through','thank','both','teeth','health','truth','path'] },
+  { symbol:'ð', anchor:'TH (voiced)', anchorWords:'the / this / that / then', ipa:'/ð/', note:'Tongue between teeth — WITH voice', mouth:'Same tongue-between-teeth position as the voiceless TH. Add VOICE vibration. You feel it on your tongue tip. This is the TH in the, this, that, they, with.', words:['the','this','that','then','they','with','other','together','although','breathe'] },
+  { symbol:'m', anchor:'M', anchorWords:'me / mom / some / make', ipa:'/m/', note:'Lips together, hum through nose', mouth:'Press lips FULLY together. HUM — feel vibration in your lips, cheeks, and nose. Air goes through the NOSE not the mouth. A nasal sound.', words:['me','mom','some','make','came','time','family','human','almost','from'] },
+  { symbol:'n', anchor:'N', anchorWords:'no / in / sun / now', ipa:'/n/', note:'Tongue on ridge, hum through nose', mouth:'Touch tongue tip to the ridge behind upper teeth. HUM — feel it in your nose. Air goes through the NOSE. Same nasal quality as M but with tongue not lips.', words:['no','in','sun','now','one','can','find','know','open','only'] },
+  { symbol:'ŋ', anchor:'NG', anchorWords:'sing / ring / thing / long', ipa:'/ŋ/', note:'Back of tongue up, hum through nose', mouth:'Back of tongue rises to soft palate like K/G position. But instead of releasing with a burst — HUM through nose. Air goes through nose. No burst of air.', words:['sing','ring','thing','long','song','bring','king','spring','strong','among'] },
+  { symbol:'l', anchor:'L', anchorWords:'late / all / feel / look', ipa:'/l/', note:'Tongue tip on ridge, voice flows around sides', mouth:'Touch tongue tip FIRMLY to the ridge behind upper teeth. Keep it there while voicing. Air flows around the SIDES of the tongue — not over the top.', words:['late','all','feel','look','still','well','help','world','tell','people'] },
+  { symbol:'r', anchor:'R', anchorWords:'run / try / far / around', ipa:'/r/', note:'Tongue curls back — does not touch anything', mouth:'Tongue tip curls slightly BACK — it does not touch anything. Lips may round very slightly. Key difference from L: L tongue touches the ridge, R tongue does not touch anything.', words:['run','try','far','right','around','every','really','other','your','more'] },
+  { symbol:'w', anchor:'W', anchorWords:'we / will / away / want', ipa:'/w/', note:'Lips round tight then open — a glide', mouth:'Start with lips ROUNDED TIGHT like long OO. Then immediately open into the next vowel. A very quick glide from rounded to open. If you say OO then a vowel fast — that is W.', words:['we','will','away','want','work','when','world','water','with','well'] },
+  { symbol:'j', anchor:'Y', anchorWords:'yes / you / yet / year', ipa:'/j/', note:'Tongue high and forward then glides', mouth:'Start with tongue HIGH and FORWARD like EE. Then immediately glide into the next vowel. Quick and light. If you say EE then a vowel fast — that is Y. Note: this is the Y consonant, not the letter J.', words:['yes','you','yet','year','your','beyond','few','music','beauty','tube'] },
+  { symbol:'h', anchor:'H', anchorWords:'he / hat / ahead / have', ipa:'/h/', note:'Open throat, push air out before vowel', mouth:'Open mouth and throat wide. Push a gentle stream of air out BEFORE the vowel. No specific tongue or lip position — it is just an open airflow.', words:['he','hat','ahead','have','help','here','hold','how','behind','perhaps'] },
+  { symbol:'tʃ', anchor:'CH', anchorWords:'chip / watch / such / choose', ipa:'/tʃ/', note:'T then SH together — two movements', mouth:'Start by touching tongue tip to the ridge like T. Then RELEASE into SH — tongue moves back. Two movements: stop then friction. It is a T with a SH release.', words:['chip','watch','such','choose','reach','touch','each','teach','kitchen','catch'] },
+  { symbol:'dʒ', anchor:'J', anchorWords:'jump / age / enjoy / job', ipa:'/dʒ/', note:'D then ZH together — voiced version of CH', mouth:'Same two-part movement as CH. Start with D (voiced T), release into ZH (voiced SH). Add voice throughout. CH and J are identical except for voice.', words:['jump','age','enjoy','just','major','edge','change','large','page','region'] },
+];
+
+// CONFUSED PAIRS — same spelling, different sounds
+const confusedPairs = [
+  {
+    title:'OO — two completely different sounds',
+    sub:'"good" vs "food" — same spelling, different sound',
+    a:{ label:'Short OO', ipa:'/ʊ/', anchor:'"book" type OO', desc:'Lips round LOOSELY. Short and relaxed. This is the OO in good, book, look, cook, foot, put, could, would, should. Never push lips forward tightly for this one.', words:['good','book','look','cook','foot','put','full','pull','could','would'] },
+    b:{ label:'Long OO', ipa:'/uː/', anchor:'"food" type OO', desc:'Lips round and push forward TIGHTLY like a kiss. Long and sustained. This is the OO in food, moon, blue, move, true, you, do.', words:['food','moon','blue','move','true','you','do','who','rule','cool'] }
+  },
+  {
+    title:'TH — two completely different sounds',
+    sub:'"think" vs "the" — same spelling, different voice',
+    a:{ label:'Voiceless TH', ipa:'/θ/', anchor:'"think" type TH', desc:'Tongue between teeth. NO voice — just push air. This is the TH in think, three, math, both, teeth, health, truth, path, through, thank.', words:['think','three','math','both','teeth','health','truth','path','through','thank'] },
+    b:{ label:'Voiced TH', ipa:'/ð/', anchor:'"the" type TH', desc:'Same tongue position. ADD voice — feel buzz on tongue tip. This is the TH in the, this, that, they, then, with, other, together, breathe, although.', words:['the','this','that','they','then','with','other','together','breathe','although'] }
+  },
+  {
+    title:'E — five completely different sounds',
+    sub:'Same letter, five different sounds',
+    a:{ label:'EE — long E', ipa:'/iː/', anchor:'"see" type E', desc:'Lips wide spread, tongue high forward. Long. Words: me, he, she, we, be, these, here, there (sometimes), people.', words:['me','he','she','we','be','these','here','people','even','equal'] },
+    b:{ label:'Short EH', ipa:'/e/', anchor:'"bed" type E', desc:'Jaw drops slightly. Short, open. Words: bed, red, best, ten, left, next, get, set, help, tell, said, head, bread.', words:['bed','red','best','ten','left','said','head','bread','friend','again'] }
+  },
+  {
+    title:'A — four completely different sounds',
+    sub:'"cat" vs "calm" vs "say" vs "want"',
+    a:{ label:'Wide AH', ipa:'/æ/', anchor:'"cat" type A', desc:'Jaw WIDE open, tongue forward and low. Words: cat, bad, man, back, hand, past, ask, fast, black, plan, have, had.', words:['cat','bad','man','back','hand','past','ask','fast','black','plan'] },
+    b:{ label:'AY glide', ipa:'/eɪ/', anchor:'"say" type A', desc:'Glide from EH up to EE. Words: say, may, late, name, game, place, face, day, pay, wait, take, make, came.', words:['say','may','late','name','game','place','face','day','pay','wait'] }
+  },
+  {
+    title:'Silent letters — letters you do not say',
+    sub:'Common words where letters are completely silent',
+    a:{ label:'Silent T', ipa:'', anchor:'T is silent', desc:'listen, often, fasten, castle, Christmas, whistle, mortgage, soften, hasten, nestle — the T is completely silent in all of these.', words:['listen','often','fasten','castle','whistle','soften','hasten','nestle','glisten','moisten'] },
+    b:{ label:'Silent letters', ipa:'', anchor:'Other silent letters', desc:'know (silent K), write (silent W), lamb (silent B), hour (silent H), knife (silent K), psychology (silent P), island (silent S).', words:['know','write','lamb','hour','knife','island','honest','answer','wrong','debt'] }
+  },
+  {
+    title:'Stress changes meaning',
+    sub:'Same spelling, different stress = different word',
+    a:{ label:'Noun — stress on first syllable', ipa:'', anchor:'REcord, PREsent, CONtent', desc:'When used as a noun, stress the FIRST syllable. A REcord (music). A PREsent (gift). CONtent (material). PERmit (a document). REfund (money back).', words:['record','present','content','permit','refund','protest','progress','project','object','conduct'] },
+    b:{ label:'Verb — stress on second syllable', ipa:'', anchor:'reCORD, preSENT, conTENT', desc:'When used as a verb, stress the SECOND syllable. To reCORD (make a recording). To preSENT (show something). To perMIT (allow). To reFUND (give money back).', words:['record','present','content','permit','refund','protest','progress','project','object','conduct'] }
+  }
+];
+
+// ===================== DAILY WORDS =====================
+const wordDays = [
+  {
+    label:'Level 1', theme:'Simple short words', note:'1 to 2 syllables. Master the sounds before moving up.',
+    words:[
+      { word:'help', syl:'HELP', ipa:'/help/', sounds:[
+        { syl:'H', ipa:'/h/', type:'voiceless', anchor:'H in "hat"', how:'Open throat, push air out before the vowel. No specific position.' },
+        { syl:'EH', ipa:'/e/', type:'vowel', anchor:'E in "bed"', how:'Jaw drops slightly. Short, open. Not EE — shorter and more open.' },
+        { syl:'L', ipa:'/l/', type:'approx', anchor:'L in "late"', how:'Tongue tip firmly on the ridge behind upper teeth. Voice flows around the sides.' },
+        { syl:'P', ipa:'/p/', type:'voiceless', anchor:'P in "pop"', how:'Lips press together, build pressure, then pop open with a burst of air. No voice.' }
+      ]},
+      { word:'call', syl:'CALL', ipa:'/kɔːl/', sounds:[
+        { syl:'K', ipa:'/k/', type:'voiceless', anchor:'K in "keep"', how:'Back of tongue on the soft palate. Release with a burst. No voice.' },
+        { syl:'AW', ipa:'/ɔː/', type:'vowel', anchor:'AW in "ball"', how:'Lips round slightly. Jaw drops and back. Long, round sound. NOT the AH in cat.' },
+        { syl:'L', ipa:'/l/', type:'approx', anchor:'L in "late"', how:'Tongue tip to ridge. Hold briefly at the end.' }
+      ]},
+      { word:'good', syl:'GOOD', ipa:'/ɡʊd/', sounds:[
+        { syl:'G', ipa:'/ɡ/', type:'voiced', anchor:'G in "go"', how:'Back of tongue on soft palate. Voiced release — feel it in your throat.' },
+        { syl:'Short OO', ipa:'/ʊ/', type:'vowel', anchor:'OO in "book" — NOT "food"', how:'Lips round LOOSELY. Short and relaxed. This is the short OO — not the long tight OO in food. The most commonly confused vowel.' },
+        { syl:'D', ipa:'/d/', type:'voiced', anchor:'D in "dog"', how:'Tongue tip on ridge, voiced. Same position as T but add voice.' }
+      ]},
+      { word:'work', syl:'WORK', ipa:'/wɜːrk/', sounds:[
+        { syl:'W', ipa:'/w/', type:'approx', anchor:'W in "we"', how:'Lips round tight like long OO, then quickly open into the vowel. A fast glide.' },
+        { syl:'UR', ipa:'/ɜːr/', type:'vowel', anchor:'UR in "her" / "fur"', how:'Tongue slightly back and up. Lips relaxed. A neutral sound — very common in unstressed syllables and before R.' },
+        { syl:'K', ipa:'/k/', type:'voiceless', anchor:'K in "back"', how:'Back of tongue, quiet release at the end.' }
+      ]},
+      { word:'think', syl:'THINK', ipa:'/θɪŋk/', sounds:[
+        { syl:'TH', ipa:'/θ/', type:'voiceless', anchor:'TH in "think" — NOT "the"', how:'Tongue tip gently between teeth. Push air through. NO voice. This is the voiceless TH.' },
+        { syl:'IH', ipa:'/ɪ/', type:'vowel', anchor:'I in "sit"', how:'Lips slightly spread, relaxed. Tongue high but not tense. Very short.' },
+        { syl:'NG', ipa:'/ŋ/', type:'nasal', anchor:'NG in "sing"', how:'Back of tongue rises to soft palate. Hum through nose. No burst of air.' },
+        { syl:'K', ipa:'/k/', type:'voiceless', anchor:'K in "back"', how:'Back of tongue, crisp release at the end.' }
+      ]}
+    ]
+  },
+  {
+    label:'Level 2', theme:'Common 2-syllable words', note:'Focus on which syllable is LOUDER — that is the stressed syllable.',
+    words:[
+      { word:'today', syl:'tuh·DAY', ipa:'/təˈdeɪ/', sounds:[
+        { syl:'tuh', ipa:'/tə/', type:'voiceless', anchor:'T then schwa — light and quick', how:'T is quick. The vowel is schwa /ə/ — the most unstressed sound in English. Barely there.' },
+        { syl:'DAY', ipa:'/deɪ/', type:'voiced', anchor:'D then AY glide in "say" — LOUD', how:'This is the stressed syllable — say it louder and longer. D: tongue tip voiced. AY: glide from EH up to EE.' }
+      ]},
+      { word:'listen', syl:'LIS·en', ipa:'/ˈlɪs.ən/', sounds:[
+        { syl:'LIS', ipa:'/lɪs/', type:'approx', anchor:'L then IH in "sit" then S hiss', how:'L: tongue to ridge. IH: very short. S: hiss. The T is SILENT — listen has a silent T.' },
+        { syl:'en', ipa:'/ən/', type:'nasal', anchor:'Schwa then N — very light', how:'Unstressed ending. Almost like just "un". The E is schwa — barely heard.' }
+      ]},
+      { word:'people', syl:'PEE·pul', ipa:'/ˈpiː.pəl/', sounds:[
+        { syl:'PEE', ipa:'/piː/', type:'voiceless', anchor:'P pop then EE in "see" — long', how:'P: lips together, pop. EE: lips spread wide, tongue high, long vowel. Stressed syllable.' },
+        { syl:'pul', ipa:'/pəl/', type:'voiceless', anchor:'P then schwa then L — light', how:'Second P is lighter. Schwa: barely there. L: tongue tip briefly to ridge.' }
+      ]},
+      { word:'about', syl:'uh·BOUT', ipa:'/əˈbaʊt/', sounds:[
+        { syl:'uh', ipa:'/ə/', type:'vowel', anchor:'Schwa — barely there', how:'Unstressed start. Just a soft schwa. Very common in English — almost silent.' },
+        { syl:'BOUT', ipa:'/baʊt/', type:'voiced', anchor:'B then OW glide in "now" then T', how:'B: lips pop. OW: jaw wide open then round to OO — a big glide. T: crisp finish.' }
+      ]},
+      { word:'ready', syl:'RED·ee', ipa:'/ˈred.i/', sounds:[
+        { syl:'RED', ipa:'/red/', type:'voiced', anchor:'R then EH in "bed" then D', how:'R: tongue curls slightly back. EH: jaw drops, short, open. D: tongue tip, voiced. Stressed.' },
+        { syl:'ee', ipa:'/i/', type:'vowel', anchor:'Short EE — light ending', how:'Unstressed ending. Lips spread slightly, tongue high. Shorter and lighter than the long EE in see.' }
+      ]}
+    ]
+  },
+  {
+    label:'Level 3', theme:'Common 3-syllable words', note:'One syllable is always the LOUDEST. The others are reduced to schwa.',
+    words:[
+      { word:'important', syl:'im·POR·tant', ipa:'/ɪmˈpɔːr.tənt/', sounds:[
+        { syl:'im', ipa:'/ɪm/', type:'nasal', anchor:'IH in "sit" then M — light', how:'Unstressed. Quick IH then lips close for M.' },
+        { syl:'POR', ipa:'/pɔːr/', type:'voiceless', anchor:'P then AW in "ball" then R — LOUD', how:'The stressed syllable. P: pop. AW: open and round. R: tongue curls slightly.' },
+        { syl:'tant', ipa:'/tənt/', type:'voiceless', anchor:'T then schwa then N then T', how:'Two T sounds around schwa. The middle vowel is schwa — barely heard. Second T can be very light.' }
+      ]},
+      { word:'together', syl:'tuh·GETH·er', ipa:'/təˈɡeð.ər/', sounds:[
+        { syl:'tuh', ipa:'/tə/', type:'voiceless', anchor:'T then schwa — very light', how:'Unstressed. Quick T and schwa, barely noticeable.' },
+        { syl:'GETH', ipa:'/ɡeð/', type:'voiced', anchor:'G then EH in "bed" then voiced TH', how:'G: back of throat, voiced. EH: jaw drops. TH: voiced — tongue between teeth WITH buzz (like "the").' },
+        { syl:'er', ipa:'/ər/', type:'vowel', anchor:'Schwa R — like "her" but very light', how:'Very common unstressed ending. Tongue slightly back, lips relaxed.' }
+      ]},
+      { word:'family', syl:'FAM·i·lee', ipa:'/ˈfæm.ɪ.li/', sounds:[
+        { syl:'FAM', ipa:'/fæm/', type:'voiceless', anchor:'F then wide AH in "cat" then M', how:'F: upper teeth on lower lip. AH: jaw WIDE open. M: lips close, hum through nose. Stressed.' },
+        { syl:'i', ipa:'/ɪ/', type:'vowel', anchor:'Very short IH — barely there', how:'Often almost skipped in natural speech. Very quick and light.' },
+        { syl:'lee', ipa:'/li/', type:'approx', anchor:'L then light EE', how:'L: tongue tip on ridge. EE: light and short at the end.' }
+      ]},
+      { word:'beautiful', syl:'BYOO·ti·ful', ipa:'/ˈbjuː.tɪ.fəl/', sounds:[
+        { syl:'BYOO', ipa:'/bjuː/', type:'voiced', anchor:'B then Y glide then long OO — like "few" with a B', how:'B: lips pop. Y: tongue glides from EE position quickly. Long OO: lips round and push forward.' },
+        { syl:'ti', ipa:'/tɪ/', type:'voiceless', anchor:'T then short IH — quick', how:'Quick light syllable. T pops, IH is very short.' },
+        { syl:'ful', ipa:'/fəl/', type:'voiceless', anchor:'F then schwa then L — light ending', how:'F: upper teeth on lower lip. Schwa: barely heard. L: tongue tip to ridge. NOT "fool" — much lighter.' }
+      ]},
+      { word:'different', syl:'DIF·er·ent', ipa:'/ˈdɪf.ər.ənt/', sounds:[
+        { syl:'DIF', ipa:'/dɪf/', type:'voiced', anchor:'D then IH in "sit" then F', how:'D: tongue tip, voiced. IH: short and quick. F: upper teeth on lower lip. Stressed syllable.' },
+        { syl:'er', ipa:'/ər/', type:'vowel', anchor:'Schwa R — very light', how:'Often reduced. Tongue slightly back. Unstressed.' },
+        { syl:'ent', ipa:'/ənt/', type:'nasal', anchor:'Schwa then N then T', how:'Very light ending. Schwa barely heard. N: nasal. T: crisp finish.' }
+      ]}
+    ]
+  },
+  {
+    label:'Level 4', theme:'Business words', note:'Words you use at work. Crisp consonants make you sound clear and decisive.',
+    words:[
+      { word:'meeting', syl:'MEET·ing', ipa:'/ˈmiː.tɪŋ/', sounds:[
+        { syl:'MEET', ipa:'/miːt/', type:'nasal', anchor:'M then long EE in "see" then T', how:'M: lips together, hum through nose. EE: long, lips spread wide — hold it. T: tongue tip, sharp finish.' },
+        { syl:'ing', ipa:'/ɪŋ/', type:'nasal', anchor:'Short IH then NG in "sing"', how:'IH: very short. NG: back of tongue to soft palate, hum through nose. Very common ending.' }
+      ]},
+      { word:'schedule', syl:'SKED·yool', ipa:'/ˈsked.juːl/', sounds:[
+        { syl:'SKED', ipa:'/sked/', type:'voiceless', anchor:'S hiss then K then EH in "bed" then D', how:'SK: two consonants — S hiss then K back of throat. EH: quick open vowel. D: tongue tip, voiced. The C is pronounced SK not SH.' },
+        { syl:'yool', ipa:'/juːl/', type:'approx', anchor:'Y glide then long OO then L', how:'Y: tongue glides from EE position. Long OO: lips round and push forward. L: tongue tip ends on ridge.' }
+      ]},
+      { word:'project', syl:'PROJ·ect', ipa:'/ˈprɒdʒ.ekt/', sounds:[
+        { syl:'PROJ', ipa:'/prɒdʒ/', type:'voiced', anchor:'P then R then AW then J', how:'P: pop. R: tongue curls back. AW: open round (like in "hot" British style). J: voiced CH — D then ZH.' },
+        { syl:'ect', ipa:'/ekt/', type:'voiceless', anchor:'EH in "bed" then K then T', how:'EH: short open. K: back of throat. T: crisp finish.' }
+      ]},
+      { word:'quickly', syl:'KWIK·lee', ipa:'/ˈkwɪk.li/', sounds:[
+        { syl:'KWIK', ipa:'/kwɪk/', type:'voiceless', anchor:'KW blend then IH in "sit" then K', how:'KW: two sounds — K back of throat then W lips round. IH: very short. K: second back-throat sound.' },
+        { syl:'lee', ipa:'/li/', type:'approx', anchor:'L then light EE', how:'Light ending. L: tongue tip on ridge. EE: short and light.' }
+      ]},
+      { word:'communicate', syl:'com·MYOO·ni·kayt', ipa:'/kəˈmjuː.nɪ.keɪt/', sounds:[
+        { syl:'com', ipa:'/kəm/', type:'nasal', anchor:'K then schwa then M — light', how:'Unstressed start. K: back of throat. Schwa: barely heard. M: lips close.' },
+        { syl:'MYOO', ipa:'/mjuː/', type:'nasal', anchor:'M then Y glide then long OO — LOUDEST', how:'The stressed syllable. M: lips together. Y: tongue glides from EE. Long OO: lips push forward.' },
+        { syl:'ni', ipa:'/nɪ/', type:'nasal', anchor:'N then short IH — light', how:'N: nasal. IH: short and light.' },
+        { syl:'kayt', ipa:'/keɪt/', type:'voiceless', anchor:'K then AY glide in "say" then T', how:'K: back of throat. AY: glide from EH to EE. T: crisp finish.' }
+      ]}
+    ]
+  },
+  {
+    label:'Level 5', theme:'Social words', note:'Words for meeting people, dating, making connections.',
+    words:[
+      { word:'confident', syl:'KON·fi·dent', ipa:'/ˈkɒn.fɪ.dənt/', sounds:[
+        { syl:'KON', ipa:'/kɒn/', type:'voiceless', anchor:'K then AW in "hot/lot" then N', how:'K: back of throat. AW: open and round. N: nasal. This is the stressed syllable.' },
+        { syl:'fi', ipa:'/fɪ/', type:'voiceless', anchor:'F then short IH — light', how:'F: upper teeth on lower lip. IH: very short.' },
+        { syl:'dent', ipa:'/dənt/', type:'voiced', anchor:'D then schwa then N then T', how:'D: tongue tip, voiced. Schwa: barely heard. N: nasal. T: crisp finish.' }
+      ]},
+      { word:'genuine', syl:'JEN·yoo·in', ipa:'/ˈdʒen.juː.ɪn/', sounds:[
+        { syl:'JEN', ipa:'/dʒen/', type:'voiced', anchor:'J sound then EH in "bed" then N', how:'J: voiced CH — D then ZH together. EH: jaw drops. N: nasal. Stressed.' },
+        { syl:'yoo', ipa:'/juː/', type:'approx', anchor:'Y glide then long OO in "food"', how:'Y: tongue glides from EE position. Long OO: lips round and push forward.' },
+        { syl:'in', ipa:'/ɪn/', type:'nasal', anchor:'Short IH then N — light', how:'IH: barely there. N: nasal finish.' }
+      ]},
+      { word:'appreciate', syl:'uh·PREE·shee·ayt', ipa:'/əˈpriː.ʃi.eɪt/', sounds:[
+        { syl:'uh', ipa:'/ə/', type:'vowel', anchor:'Schwa — barely there', how:'Completely unstressed opening. Just a soft schwa.' },
+        { syl:'PREE', ipa:'/priː/', type:'voiceless', anchor:'P then R then long EE in "see" — LOUD', how:'P: pop. R: tongue curls back. Long EE: lips spread wide, hold it. The stressed syllable.' },
+        { syl:'shee', ipa:'/ʃi/', type:'voiceless', anchor:'SH then short EE', how:'SH: tongue back, lips slightly forward. EE: lips spread, shorter here.' },
+        { syl:'ayt', ipa:'/eɪt/', type:'voiceless', anchor:'AY glide in "say" then T', how:'AY: glide from EH to EE. T: clean crisp finish.' }
+      ]},
+      { word:'introduce', syl:'in·truh·DYOOS', ipa:'/ˌɪn.trəˈdjuːs/', sounds:[
+        { syl:'in', ipa:'/ɪn/', type:'nasal', anchor:'Short IH then N — light', how:'IH: short. N: nasal. Unstressed opening.' },
+        { syl:'truh', ipa:'/trə/', type:'voiceless', anchor:'TR blend then schwa — light', how:'TR: two consonants together — T then R. Schwa: barely heard.' },
+        { syl:'DYOOS', ipa:'/djuːs/', type:'voiced', anchor:'D then Y glide then long OO then S — LOUD', how:'Stressed. D: tongue tip. Y: glides from EE. Long OO: lips push forward. S: hiss finish.' }
+      ]},
+      { word:'comfortable', syl:'KUM·fur·tuh·bul', ipa:'/ˈkʌm.fər.tə.bəl/', sounds:[
+        { syl:'KUM', ipa:'/kʌm/', type:'voiceless', anchor:'K then UH in "cup" then M', how:'K: back of throat. Short UH: central, relaxed. M: lips close. Stressed.' },
+        { syl:'fur', ipa:'/fər/', type:'voiceless', anchor:'F then UR in "fur"', how:'F: upper teeth on lower lip. UR: tongue slightly back, lips relaxed.' },
+        { syl:'tuh', ipa:'/tə/', type:'voiceless', anchor:'T then schwa — almost silent', how:'Very light. Often reduced to just a light T in natural speech.' },
+        { syl:'bul', ipa:'/bəl/', type:'voiced', anchor:'B then schwa then L — light ending', how:'B: lips pop lightly. Schwa: barely heard. L: tongue tip to ridge.' }
+      ]}
+    ]
+  },
+  {
+    label:'Level 6', theme:'Your life goals', note:'Portugal, fitness, business, retirement — the words of your actual life.',
+    words:[
+      { word:'Portugal', syl:'POR·choo·gul', ipa:'/ˈpɔːr.tʃʊ.ɡəl/', sounds:[
+        { syl:'POR', ipa:'/pɔːr/', type:'voiceless', anchor:'P then AW in "ball" then R', how:'P: pop. AW: open and round. R: tongue curls slightly back. Stressed.' },
+        { syl:'choo', ipa:'/tʃʊ/', type:'voiceless', anchor:'CH then short OO in "book"', how:'CH: tongue tip up then back — T then SH together. Short OO: lips round LOOSELY — not the tight long OO.' },
+        { syl:'gul', ipa:'/ɡəl/', type:'voiced', anchor:'G then schwa then L', how:'G: back of throat, voiced. Schwa: barely heard. L: tongue tip to ridge.' }
+      ]},
+      { word:'consistent', syl:'kun·SIS·tent', ipa:'/kənˈsɪs.tənt/', sounds:[
+        { syl:'kun', ipa:'/kən/', type:'voiceless', anchor:'K then schwa then N — light', how:'Unstressed start. K: back of throat. Schwa: very short. N: nasal.' },
+        { syl:'SIS', ipa:'/sɪs/', type:'voiceless', anchor:'S hiss then IH in "sit" then S hiss — LOUD', how:'The stressed syllable. Two S sounds around a short IH. Both S sounds should be crisp.' },
+        { syl:'tent', ipa:'/tənt/', type:'voiceless', anchor:'T then schwa then N then T', how:'T: crisp. Schwa: barely heard. N: nasal. T: final crisp finish.' }
+      ]},
+      { word:'retirement', syl:'ri·TYR·ment', ipa:'/rɪˈtaɪər.mənt/', sounds:[
+        { syl:'ri', ipa:'/rɪ/', type:'approx', anchor:'R then short IH — light', how:'Unstressed start. R: tongue curls. IH: very short.' },
+        { syl:'TYR', ipa:'/taɪər/', type:'voiceless', anchor:'T then EYE glide then R — LOUD', how:'T: crisp. EYE: jaw wide open then glide to EE. R: tongue curls. The stressed syllable.' },
+        { syl:'ment', ipa:'/mənt/', type:'nasal', anchor:'M then schwa then N then T', how:'M: lips close. Schwa: barely heard — often just "mnt" in natural speech. N: nasal. T: light finish.' }
+      ]},
+      { word:'discipline', syl:'DIS·i·plin', ipa:'/ˈdɪs.ɪ.plɪn/', sounds:[
+        { syl:'DIS', ipa:'/dɪs/', type:'voiced', anchor:'D then IH in "sit" then S hiss', how:'D: tongue tip, voiced. IH: short. S: hiss. The stressed syllable.' },
+        { syl:'i', ipa:'/ɪ/', type:'vowel', anchor:'Very short IH — barely there', how:'Almost skipped in natural speech. Very quick.' },
+        { syl:'plin', ipa:'/plɪn/', type:'voiceless', anchor:'P then L then short IH then N', how:'P: pop. L: tongue tip to ridge. IH: short. N: nasal finish. The C is silent.' }
+      ]},
+      { word:'confidence', syl:'KON·fi·dens', ipa:'/ˈkɒn.fɪ.dəns/', sounds:[
+        { syl:'KON', ipa:'/kɒn/', type:'voiceless', anchor:'K then AW in "hot" then N', how:'K: back of throat. AW: open round. N: nasal. Stressed syllable.' },
+        { syl:'fi', ipa:'/fɪ/', type:'voiceless', anchor:'F then short IH — light', how:'F: upper teeth on lower lip. IH: very short.' },
+        { syl:'dens', ipa:'/dəns/', type:'voiced', anchor:'D then schwa then N then S', how:'D: tongue tip. Schwa: barely heard. N: nasal. S: hiss finish.' }
+      ]}
+    ]
+  }
+];
+
+// ===================== STATE =====================
+let state = { done:{}, dayIdx:0 };
+try { const s=localStorage.getItem('vl2_state'); if(s) state={...state,...JSON.parse(s)}; } catch(e){}
+function save(){ try{localStorage.setItem('vl2_state',JSON.stringify(state));}catch(e){} }
+
+let activeTab = 0;
+let expandedWord = null;
+let openSoundKey = null;
+let openPairKey = null;
+
+// ===================== TAB SWITCH =====================
+function switchTab(i){
+  activeTab = i;
+  document.querySelectorAll('#mainTabs .tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.getElementById('tab-words').style.display = i===0?'block':'none';
+  document.getElementById('tab-sounds').style.display = i===1?'block':'none';
+  document.getElementById('tab-pairs').style.display = i===2?'block':'none';
+  if(i===0) renderWords();
+  if(i===1) renderSoundLib();
+  if(i===2) renderConfusedPairs();
+}
+
+// ===================== WORDS =====================
+function typeClass(t){
+  if(t==='voiced') return 'voiced-row';
+  if(t==='voiceless') return 'voiceless-row';
+  if(t==='vowel') return 'vowel-row';
+  if(t==='nasal') return 'nasal-row';
+  return '';
+}
+function typeTag(t){
+  const map={voiced:'type-voiced',voiceless:'type-voiceless',vowel:'type-vowel',nasal:'type-nasal',approx:'type-approx'};
+  const labels={voiced:'Voiced consonant',voiceless:'Voiceless consonant',vowel:'Vowel',nasal:'Nasal',approx:'Approximant'};
+  return `<span class="snd-type ${map[t]||''}">${labels[t]||t}</span>`;
+}
+
+function renderWords(){
+  const tabs = document.getElementById('dayTabs');
+  tabs.innerHTML='';
+  wordDays.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===state.dayIdx?' active':'');
+    b.textContent=d.label;
+    b.onclick=()=>{ state.dayIdx=i; expandedWord=null; save(); renderWords(); };
+    tabs.appendChild(b);
+  });
+
+  const day = wordDays[state.dayIdx];
+  const done = state.done[state.dayIdx]||[];
+  const pct = Math.round((done.length/day.words.length)*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLbl').textContent=`${done.length} of ${day.words.length} practiced`;
+
+  let total=0;
+  Object.values(state.done).forEach(arr=>total+=arr.length);
+  document.getElementById('statBadge').textContent=total+' done';
+
+  const list=document.getElementById('wordList');
+  list.innerHTML='';
+
+  // Level note
+  const note=document.createElement('div');
+  note.className='level-note';
+  note.innerHTML=`<span style="color:var(--amber);font-weight:600;">${day.theme}</span> — ${day.note}`;
+  list.appendChild(note);
+
+  day.words.forEach((w,i)=>{
+    const isDone=done.includes(i);
+    const isOpen=expandedWord===i;
+    const card=document.createElement('div');
+    card.className='wcard'+(isDone?' done':'')+(isOpen?' open':'');
+
+    // Syllable blocks
+    const syls = w.syl.split('·');
+    const stressIdx = syls.findIndex(s=>s===s.toUpperCase()&&s.length>1);
+    const sylBlocks = syls.map((s,si)=>{
+      const isStressed = si===stressIdx;
+      return `<div class="syl-block${isStressed?' stressed':''}">
+        <div class="syl-stress-dot">▲</div>
+        <div class="syl-text">${s}</div>
+      </div>`;
+    }).join('');
+
+    const soundRows = w.sounds.map(s=>`
+      <div class="snd-row ${typeClass(s.type)}">
+        <div class="snd-top">
+          <div class="snd-syl">${s.syl}</div>
+          <div class="snd-right">
+            <div class="snd-ipa">${s.ipa}</div>
+            <div class="snd-anchor">Sounds like <span>${s.anchor}</span></div>
+            ${typeTag(s.type)}
+          </div>
+        </div>
+        <div class="snd-how">${s.how}</div>
+      </div>`).join('');
+
+    card.innerHTML=`
+      <div class="wcard-top" onclick="toggleWord(${i})">
+        <div class="wcard-left">
+          <div class="wcard-word">${w.word}</div>
+          <div class="wcard-meta">
+            <span class="wcard-syl">${w.syl}</span>
+            <span class="wcard-ipa">${w.ipa}</span>
+          </div>
+        </div>
+        <button class="wcard-check${isDone?' done':''}" onclick="event.stopPropagation();markDone(${i})">${isDone?'✓':''}</button>
+      </div>
+      <div class="wcard-expand">
+        <div class="syl-label">Syllables — ▲ marks the loudest</div>
+        <div class="syl-row">${sylBlocks}</div>
+        <div class="syl-label" style="margin-top:10px;">Sound by sound</div>
+        <div class="sound-rows">${soundRows}</div>
+        <button class="hear-btn" onclick="speakWord('${w.word}')">🔊 Hear "${w.word}" spoken</button>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  const allDone=done.length>=day.words.length;
+  document.getElementById('doneMsg').style.display=allDone?'block':'none';
+}
+
+function toggleWord(i){ expandedWord=expandedWord===i?null:i; renderWords(); }
+function markDone(i){
+  if(!state.done[state.dayIdx]) state.done[state.dayIdx]=[];
+  const arr=state.done[state.dayIdx];
+  if(arr.includes(i)) state.done[state.dayIdx]=arr.filter(x=>x!==i);
+  else arr.push(i);
+  save(); renderWords();
+}
+
+// ===================== SOUND LIB =====================
+function renderSoundLib(){
+  renderSoundGroup('vowelRows', vowelSounds, 'var(--teal)');
+  renderSoundGroup('consonantRows', consonantSounds, 'var(--accent2)');
+}
+function renderSoundGroup(id, sounds, color){
+  const container=document.getElementById(id);
+  container.innerHTML='';
+  sounds.forEach((s,i)=>{
+    const key=id+'_'+i;
+    const isOpen=openSoundKey===key;
+    const row=document.createElement('div');
+    row.className='sound-row'+(isOpen?' open':'');
+    row.innerHTML=`
+      <div class="sound-row-header" onclick="toggleSound('${key}')">
+        <div class="sound-symbol" style="color:${color};">${s.symbol}</div>
+        <div style="flex:1;">
+          <div class="sound-ipa-tag">${s.ipa}</div>
+          <div class="sound-anchor-word">${s.anchor} — ${s.anchorWords}</div>
+          <div class="sound-note">${s.note}</div>
+        </div>
+        <span style="color:var(--dim);font-size:12px;"${isOpen?' style="color:var(--dim);font-size:12px;transform:rotate(180deg);"':''}>▾</span>
+      </div>
+      <div class="sound-body">
+        <div class="mouth-tip">${s.mouth}</div>
+        <div class="syl-label">Tap to hear</div>
+        <div class="sound-words">${s.words.map(w=>`<button class="sound-word-btn" onclick="speakWord('${w}')">${w}</button>`).join('')}</div>
+      </div>`;
+    container.appendChild(row);
+  });
+}
+function toggleSound(key){ openSoundKey=openSoundKey===key?null:key; renderSoundLib(); }
+
+// ===================== CONFUSED PAIRS =====================
+function renderConfusedPairs(){
+  const container=document.getElementById('confusedPairs');
+  container.innerHTML='';
+  confusedPairs.forEach((pair,i)=>{
+    const isOpen=openPairKey===i;
+    const box=document.createElement('div');
+    box.className='pair-box'+(isOpen?' open':'');
+    box.style.margin='0 16px 10px';
+    box.innerHTML=`
+      <div class="pair-header" onclick="togglePair(${i})">
+        <div>
+          <div class="pair-title">${pair.title}</div>
+          <div class="pair-sub">${pair.sub}</div>
+        </div>
+        <span style="color:var(--dim);font-size:12px;">▾</span>
+      </div>
+      <div class="pair-body">
+        <div class="pair-col-wrap">
+          <div class="pair-col" style="border-top:3px solid var(--teal);">
+            <div class="pair-col-title" style="color:var(--teal);">${pair.a.label}</div>
+            ${pair.a.ipa?`<div class="pair-col-ipa">${pair.a.ipa}</div>`:''}
+            <div class="pair-col-anchor" style="color:var(--text);">${pair.a.anchor}</div>
+            <div class="pair-col-desc">${pair.a.desc}</div>
+            <div class="pair-words">${pair.a.words.slice(0,5).map(w=>`<button class="pair-word-btn" onclick="speakWord('${w}')">${w}</button>`).join('')}</div>
+          </div>
+          <div class="pair-col" style="border-top:3px solid var(--rose);">
+            <div class="pair-col-title" style="color:var(--rose);">${pair.b.label}</div>
+            ${pair.b.ipa?`<div class="pair-col-ipa">${pair.b.ipa}</div>`:''}
+            <div class="pair-col-anchor" style="color:var(--text);">${pair.b.anchor}</div>
+            <div class="pair-col-desc">${pair.b.desc}</div>
+            <div class="pair-words">${pair.b.words.slice(0,5).map(w=>`<button class="pair-word-btn" onclick="speakWord('${w}')">${w}</button>`).join('')}</div>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(box);
+  });
+}
+function togglePair(i){ openPairKey=openPairKey===i?null:i; renderConfusedPairs(); }
+
+// ===================== SPEAK =====================
+function speakWord(text){
+  if('speechSynthesis' in window){
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=0.7; u.lang='en-US';
+    window.speechSynthesis.speak(u);
+  }
+}
+
+// ===================== INIT =====================
+renderWords();
+</script>
+</body>
+</html>
