@@ -985,6 +985,1011 @@ function renderPairs(){
           </div>
           <div class="pair-col" style="border-top:3px solid var(--rose);">
             <div class="pair-col-title" style="color:var(--rose);">${pair.b.label}</div>
+            ${pair.b.ipa?`<div class="pair-col-ipa">${pair.b.ipa}</div>`:''}
+            <div class="pair-col-anchor">${pair.b.anchor}</div>
+            <div class="pair-col-desc">${pair.b.desc}</div>
+            <div class="pair-words">${pair.b.words.map(w=>`<button class="pair-word" onclick="speak('${w}')">${w}</button>`).join('')}</div>
+          </div>
+        </div>
+      </div>`;
+
+    content.appendChild(card);
+  });
+}
+function togglePair(i){openPairIdx=openPairIdx===i?null:i;renderPairs();}
+
+// =========== INIT ===========
+renderHome();
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VoiceLab — Speech Therapy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#080810;--s1:#10101e;--s2:#16162a;--s3:#1e1e34;
+  --accent:#6366f1;--accent2:#818cf8;--teal:#2dd4bf;
+  --amber:#f59e0b;--rose:#f43f5e;--green:#22c55e;
+  --text:#f0f0ff;--sub:#9090b0;--dim:#50506a;--border:#2a2a42;--r:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;max-width:500px;margin:0 auto;padding:0 0 90px;overflow-x:hidden;}
+/* LAYOUT */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:block;}
+.page-pad{padding:0 16px;}
+/* HEADER */
+.top-bar{padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(8,8,16,0.95);backdrop-filter:blur(20px);z-index:50;border-bottom:1px solid var(--border);}
+.top-title{font-size:20px;font-weight:700;letter-spacing:-0.02em;}
+.back-btn{background:none;border:none;color:var(--sub);font-size:14px;cursor:pointer;padding:4px 8px 4px 0;font-family:'Inter',sans-serif;}
+.badge{background:var(--s3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--sub);font-family:'JetBrains Mono',monospace;}
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(8,8,16,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:100;padding:6px 0 18px;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;background:none;border:none;cursor:pointer;color:var(--dim);font-size:9px;font-family:'Inter',sans-serif;letter-spacing:0.04em;transition:color 0.2s;}
+.nav-btn.active{color:var(--accent2);}
+.nav-icon{font-size:18px;line-height:1;}
+/* TABS */
+.tabs{display:flex;gap:6px;padding:10px 16px 6px;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.tab.active{background:var(--accent);border-color:var(--accent);color:white;}
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px;}
+.card.open{border-color:var(--accent);}
+.card-header{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.card-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.card-info{flex:1;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:2px;}
+.card-sub{font-size:12px;color:var(--sub);}
+.card-arrow{color:var(--dim);font-size:11px;transition:transform 0.2s;flex-shrink:0;}
+.card.open .card-arrow{transform:rotate(180deg);}
+.card-body{display:none;border-top:1px solid var(--border);}
+.card.open .card-body{display:block;}
+/* SECTION LABEL */
+.slabel{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.12em;padding:14px 16px 6px;}
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px;}
+.stat-box{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.stat-num{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.stat-lbl{font-size:10px;color:var(--sub);margin-top:2px;}
+/* PROG */
+.prog-wrap{padding:4px 16px 10px;}
+.prog-track{height:3px;background:var(--s2);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.4s;}
+.prog-lbl{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim);margin-top:5px;}
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;width:100%;}
+.btn-primary{background:var(--accent);color:white;}
+.btn-primary:active{background:#4f52d4;}
+.btn-secondary{background:var(--s3);color:var(--text);border:1px solid var(--border);}
+.btn-teal{background:#0d3d38;color:var(--teal);border:1px solid #1a5a52;}
+.btn-rose{background:#2d0a12;color:var(--rose);border:1px solid #5a1525;}
+.btn-sm{padding:8px 13px;font-size:13px;width:auto;}
+.row{display:flex;gap:8px;padding:0 16px;margin-bottom:10px;}
+.row .btn{flex:1;}
+/* BREATH */
+.breath-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 16px 10px;}
+.breath-outer{width:180px;height:180px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:16px;}
+.breath-inner{width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,var(--accent),#3730a3);display:flex;align-items:center;justify-content:center;transition:transform 0.3s;box-shadow:0 0 30px rgba(99,102,241,0.3);}
+.breath-circle-text{font-size:12px;font-weight:600;color:white;text-align:center;line-height:1.3;}
+.breath-phase{font-size:18px;font-weight:700;text-align:center;min-height:26px;margin-bottom:4px;}
+.breath-count{font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:700;color:var(--accent2);text-align:center;min-height:56px;}
+.breath-tip{font-size:13px;color:var(--sub);text-align:center;min-height:20px;padding:0 20px;}
+/* WORD CARDS */
+.wcard{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px;}
+.wcard.done{border-color:#1a3a20;background:#0a1410;}
+.wcard.open{border-color:var(--accent);}
+.wcard-top{padding:13px 15px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.wcard-word{font-size:20px;font-weight:700;}
+.wcard.done .wcard-word{color:var(--green);}
+.wcard-meta{display:flex;gap:7px;margin-top:3px;flex-wrap:wrap;}
+.wcard-syl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent2);}
+.wcard-ipa{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:var(--s2);padding:1px 6px;border-radius:4px;}
+.wcard-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--dim);flex-shrink:0;transition:all 0.2s;}
+.wcard.done .wcard-check{background:var(--green);border-color:var(--green);color:#000;}
+.wcard-expand{display:none;border-top:1px solid var(--border);padding:13px 15px;}
+.wcard.open .wcard-expand{display:block;}
+/* SYLLABLE BLOCKS */
+.syl-row{display:flex;gap:0;margin-bottom:10px;border-radius:9px;overflow:hidden;border:1px solid var(--border);}
+.syl-block{flex:1;padding:9px 6px;background:var(--s2);text-align:center;border-right:1px solid var(--border);}
+.syl-block:last-child{border-right:none;}
+.syl-block.stressed{background:var(--s3);border-top:2px solid var(--accent);}
+.syl-text{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;}
+.syl-block.stressed .syl-text{color:var(--accent2);}
+.syl-dot{font-size:7px;color:var(--accent);margin-bottom:1px;visibility:hidden;}
+.syl-block.stressed .syl-dot{visibility:visible;}
+/* SOUND ROWS */
+.snd-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.snd-row{background:var(--s2);border-radius:8px;padding:9px 11px;border-left:3px solid var(--border);}
+.snd-row.rv{border-left-color:var(--green);}
+.snd-row.rvl{border-left-color:var(--rose);}
+.snd-row.rvow{border-left-color:var(--teal);}
+.snd-row.rnas{border-left-color:var(--amber);}
+.snd-top{display:flex;align-items:flex-start;gap:9px;margin-bottom:4px;}
+.snd-syl{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--amber);min-width:38px;flex-shrink:0;}
+.snd-right{flex:1;}
+.snd-ipa{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);background:var(--bg);padding:1px 5px;border-radius:4px;display:inline-block;margin-bottom:3px;}
+.snd-anchor{font-size:13px;font-weight:500;margin-bottom:2px;}
+.snd-anchor span{color:var(--accent2);}
+.snd-how{font-size:12px;color:var(--sub);line-height:1.4;}
+.stype{font-size:9px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;padding:2px 5px;border-radius:8px;display:inline-block;margin-top:3px;}
+.st-v{background:#0a2a1a;color:var(--green);}
+.st-vl{background:#2a0a10;color:var(--rose);}
+.st-vow{background:#0a2a30;color:var(--teal);}
+.st-nas{background:#2a1f0a;color:var(--amber);}
+.st-app{background:#1a1a2a;color:var(--accent2);}
+.hear-btn{margin-top:8px;padding:9px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--accent2);font-size:13px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:5px;}
+.hear-btn:active{background:var(--s3);}
+/* SOUND LIB */
+.slib-row{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;}
+.slib-header{padding:13px 15px;display:flex;align-items:center;gap:11px;cursor:pointer;}
+.slib-sym{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;min-width:48px;}
+.slib-ipa{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:var(--s2);padding:1px 6px;border-radius:4px;margin-bottom:3px;display:inline-block;}
+.slib-anchor{font-size:13px;font-weight:600;margin-bottom:1px;}
+.slib-note{font-size:11px;color:var(--sub);}
+.slib-body{display:none;border-top:1px solid var(--border);padding:13px 15px;}
+.slib-row.open .slib-body{display:block;}
+.mouth-tip{background:var(--s3);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--sub);line-height:1.5;border-left:3px solid var(--amber);margin-bottom:10px;}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:5px 11px;font-size:13px;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;}
+.chip:active{background:var(--s3);}
+/* STT */
+.stt-box{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin:0 16px 10px;min-height:70px;display:flex;align-items:center;justify-content:center;}
+.stt-result{font-size:15px;color:var(--text);text-align:center;line-height:1.5;}
+.stt-placeholder{font-size:13px;color:var(--dim);text-align:center;}
+.stt-target{font-size:17px;font-weight:700;color:var(--accent2);text-align:center;padding:0 16px;margin-bottom:8px;}
+.match{font-size:12px;text-align:center;padding:5px 12px;border-radius:20px;margin-top:7px;display:inline-block;}
+.mg{background:#0d2a1a;color:var(--green);}
+.mb{background:#2a1010;color:var(--rose);}
+.mp{background:#2a1f0a;color:var(--amber);}
+.mic-btn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px;transition:all 0.2s;}
+.mic-idle{background:var(--accent);box-shadow:0 0 20px rgba(99,102,241,0.3);}
+.mic-on{background:var(--rose);box-shadow:0 0 30px rgba(244,63,94,0.5);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+/* MUSCLE */
+.muscle-ex{padding:14px 16px;}
+.muscle-desc{font-size:13px;color:var(--sub);line-height:1.5;margin-bottom:10px;}
+.why-box{background:var(--s3);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--sub);line-height:1.5;border-left:3px solid var(--amber);margin-bottom:10px;}
+.why-label{font-size:9px;color:var(--amber);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
+.rep-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.rep-lbl{font-size:13px;color:var(--sub);flex:1;}
+.rep-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--s2);color:var(--text);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.rep-num{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:var(--accent2);min-width:28px;text-align:center;}
+/* VOICE STRENGTH */
+.vs-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;}
+.vs-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.vs-desc{font-size:13px;color:var(--sub);line-height:1.5;margin-bottom:10px;}
+.vs-timer{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;color:var(--accent2);text-align:center;margin:10px 0;}
+/* SENTENCE */
+.sen-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;}
+.sen-focus{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.sen-text{font-size:15px;font-weight:500;line-height:1.5;margin-bottom:6px;}
+.sen-tip{font-size:12px;color:var(--sub);line-height:1.5;margin-bottom:10px;}
+.sen-actions{display:flex;gap:8px;}
+/* PAIR */
+.pair-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px;}
+.pair-header{padding:13px 15px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.pair-title{font-size:13px;font-weight:600;}
+.pair-sub{font-size:11px;color:var(--sub);margin-top:2px;}
+.pair-body{display:none;border-top:1px solid var(--border);padding:13px 15px;}
+.pair-card.open .pair-body{display:block;}
+.pair-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.pair-col{background:var(--s2);border-radius:8px;padding:11px;}
+.pair-col-title{font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;}
+.pair-col-ipa{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);margin-bottom:3px;}
+.pair-col-anchor{font-size:12px;font-weight:600;margin-bottom:3px;}
+.pair-col-desc{font-size:11px;color:var(--sub);line-height:1.4;}
+.pair-words{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.pair-word{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:12px;cursor:pointer;}
+/* TOAST */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--green);color:#000;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;transition:transform 0.3s;white-space:nowrap;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+/* DONE MSG */
+.done-msg{background:#0a1810;border:1px solid #1a3a20;border-radius:var(--r);padding:18px;text-align:center;margin-bottom:10px;display:none;}
+.info-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;font-size:13px;color:var(--sub);line-height:1.5;}
+.level-note{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:10px;font-size:13px;color:var(--sub);line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- HOME -->
+<div class="screen active" id="sc-home">
+  <div class="top-bar">
+    <div class="top-title">VoiceLab</div>
+    <div class="badge" id="streakBadge">🔥 0 days</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num" id="hSessions" style="color:var(--accent2)">0</div><div class="stat-lbl">Sessions</div></div>
+    <div class="stat-box"><div class="stat-num" id="hWords" style="color:var(--teal)">0</div><div class="stat-lbl">Words</div></div>
+    <div class="stat-box"><div class="stat-num" id="hMins" style="color:var(--amber)">0</div><div class="stat-lbl">Min Today</div></div>
+  </div>
+  <div class="slabel">Daily Program — 25 min</div>
+  <div class="page-pad">
+    <div class="card"><div class="card-header" onclick="goTo('breath')"><div class="card-icon" style="background:#1a0f3a;">🫁</div><div class="card-info"><div class="card-title">Breath Training</div><div class="card-sub">Foundation of clear speech — 5 min</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+    <div class="card"><div class="card-header" onclick="goTo('voice')"><div class="card-icon" style="background:#0a1a2a;">🎙</div><div class="card-info"><div class="card-title">Voice Strengthening</div><div class="card-sub">Projection, resonance, pitch — 5 min</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+    <div class="card"><div class="card-header" onclick="goTo('muscle')"><div class="card-icon" style="background:#0a2a1a;">💪</div><div class="card-info"><div class="card-title">Muscle Exercises</div><div class="card-sub">Lips, tongue, jaw, soft palate — 5 min</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+    <div class="card"><div class="card-header" onclick="goTo('sounds')"><div class="card-icon" style="background:#1a1a0a;">🔤</div><div class="card-info"><div class="card-title">Sounds and Pairs</div><div class="card-sub">Consonants, vowels, IPA — 5 min</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+    <div class="card"><div class="card-header" onclick="goTo('words')"><div class="card-icon" style="background:#1a0a1a;">📖</div><div class="card-info"><div class="card-title">Daily Words</div><div class="card-sub">5 words with IPA and anchor guide — 5 min</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+  </div>
+  <div class="slabel">More Tools</div>
+  <div class="page-pad">
+    <div class="card"><div class="card-header" onclick="goTo('stt')"><div class="card-icon" style="background:#1a0808;">🎤</div><div class="card-info"><div class="card-title">Speech Test</div><div class="card-sub">Speak and check if you are understood</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+    <div class="card"><div class="card-header" onclick="goTo('sentences')"><div class="card-icon" style="background:#081a1a;">💬</div><div class="card-info"><div class="card-title">Sentence Practice</div><div class="card-sub">Real phrases for real situations</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+    <div class="card"><div class="card-header" onclick="goTo('pairs')"><div class="card-icon" style="background:#1a0a0a;">⚡</div><div class="card-info"><div class="card-title">Confused Pairs</div><div class="card-sub">Same spelling, different sounds</div></div><span style="color:var(--dim);font-size:18px;">›</span></div></div>
+  </div>
+</div>
+
+<!-- BREATH -->
+<div class="screen" id="sc-breath">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Breath</div><div class="badge" id="breathExBadge">Box</div></div>
+  <div class="tabs" id="breathTabs"></div>
+  <div class="breath-wrap">
+    <div style="position:relative;">
+      <svg width="200" height="200" style="position:absolute;top:-10px;left:-10px;">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="var(--border)" stroke-width="3"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="565" id="bRing" stroke-dashoffset="565" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 0.3s;"/>
+      </svg>
+      <div class="breath-outer"><div class="breath-inner" id="bCircle"><div class="breath-circle-text" id="bCircleText">Ready</div></div></div>
+    </div>
+    <div class="breath-phase" id="bPhase">Select exercise above</div>
+    <div class="breath-count" id="bCount"></div>
+    <div class="breath-tip" id="bTip">Tap Start when ready</div>
+  </div>
+  <div class="row"><button class="btn btn-primary" id="bStartBtn" onclick="startBreath()">Start</button><button class="btn btn-secondary btn-sm" onclick="stopBreath()" style="width:70px;">Stop</button></div>
+  <div class="slabel">Why this matters</div>
+  <div class="page-pad"><div class="info-box" id="bWhyBox">Breath support is the engine of clear speech.</div></div>
+</div>
+
+<!-- VOICE STRENGTH -->
+<div class="screen" id="sc-voice">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Voice Strength</div></div>
+  <div class="tabs" id="voiceTabs"></div>
+  <div id="voiceContent" class="page-pad" style="padding-top:10px;"></div>
+</div>
+
+<!-- MUSCLE -->
+<div class="screen" id="sc-muscle">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Muscle Work</div></div>
+  <div class="tabs" id="muscleTabs"></div>
+  <div id="muscleContent" class="page-pad" style="padding-top:10px;"></div>
+</div>
+
+<!-- SOUNDS -->
+<div class="screen" id="sc-sounds">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Sounds</div></div>
+  <div class="tabs" id="soundTabs"></div>
+  <div id="soundContent" class="page-pad" style="padding-top:10px;"></div>
+</div>
+
+<!-- WORDS -->
+<div class="screen" id="sc-words">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Daily Words</div><div class="badge" id="wordThemeBadge">Level 1</div></div>
+  <div class="tabs" id="wordDayTabs"></div>
+  <div class="prog-wrap"><div class="prog-track"><div class="prog-fill" id="wProgFill" style="width:0%"></div></div><div class="prog-lbl" id="wProgLbl">0 of 5 practiced</div></div>
+  <div class="page-pad"><div id="wordList"></div><div class="done-msg" id="wordDoneMsg"><div style="font-size:26px;margin-bottom:6px;">🎯</div><div style="font-size:14px;font-weight:600;color:var(--green);">All words practiced!</div><div style="font-size:12px;color:var(--sub);margin-top:3px;">Come back tomorrow. Consistency is everything.</div></div></div>
+</div>
+
+<!-- STT -->
+<div class="screen" id="sc-stt">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Speech Test</div></div>
+  <div class="slabel">Say this phrase</div>
+  <div class="stt-target" id="sttTarget">Loading...</div>
+  <div class="stt-box"><div id="sttArea"><div class="stt-placeholder">Tap the mic then speak</div></div></div>
+  <div style="text-align:center;margin-bottom:6px;"><button class="mic-btn mic-idle" id="micBtn" onclick="toggleMic()">🎤</button><div style="font-size:11px;color:var(--sub);" id="micStatus">Tap to speak</div></div>
+  <div class="row"><button class="btn btn-secondary" onclick="nextPhrase()">Next Phrase</button><button class="btn btn-teal" onclick="hearTarget()">🔊 Hear it</button></div>
+  <div class="slabel">How to use</div>
+  <div class="page-pad"><div class="info-box">Speak the phrase. The app shows what it understood. Green means clear. Yellow means partial. Red means practice those sounds more. Where words get wrong that is your focus area.</div></div>
+</div>
+
+<!-- SENTENCES -->
+<div class="screen" id="sc-sentences">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Sentences</div></div>
+  <div class="tabs" id="senTabs"></div>
+  <div id="senContent" class="page-pad" style="padding-top:10px;"></div>
+</div>
+
+<!-- CONFUSED PAIRS -->
+<div class="screen" id="sc-pairs">
+  <div class="top-bar"><button class="back-btn" onclick="goTo('home')">← Back</button><div class="top-title">Confused Pairs</div></div>
+  <div class="page-pad" style="padding-top:10px;">
+    <div class="info-box">Same spelling, completely different sounds. The most common source of pronunciation errors in English.</div>
+    <div id="pairsContent"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="goTo('home')" id="nav-home"><span class="nav-icon">⌂</span>Home</button>
+  <button class="nav-btn" onclick="goTo('breath')" id="nav-breath"><span class="nav-icon">🫁</span>Breath</button>
+  <button class="nav-btn" onclick="goTo('voice')" id="nav-voice"><span class="nav-icon">🎙</span>Voice</button>
+  <button class="nav-btn" onclick="goTo('muscle')" id="nav-muscle"><span class="nav-icon">💪</span>Muscle</button>
+  <button class="nav-btn" onclick="goTo('words')" id="nav-words"><span class="nav-icon">📖</span>Words</button>
+  <button class="nav-btn" onclick="goTo('stt')" id="nav-stt"><span class="nav-icon">🎤</span>Test</button>
+</nav>
+
+<script>
+// =========== STATE ===========
+let S={streak:0,sessions:0,totalWords:0,minsToday:0,wordsDone:{},repCounts:{}};
+try{const s=localStorage.getItem('vl_main');if(s)S={...S,...JSON.parse(s)};}catch(e){}
+function save(){try{localStorage.setItem('vl_main',JSON.stringify(S));}catch(e){}}
+
+// =========== NAV ===========
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sc-'+id).classList.add('active');
+  const nb=document.getElementById('nav-'+id);
+  if(nb)nb.classList.add('active');
+  window.scrollTo(0,0);
+  const fn={home:renderHome,breath:renderBreath,voice:renderVoice,muscle:renderMuscle,sounds:renderSounds,words:renderWords,stt:renderSTT,sentences:renderSentences,pairs:renderPairs};
+  if(fn[id])fn[id]();
+}
+
+// =========== TOAST ===========
+function toast(msg,color){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=color||'var(--green)';t.style.color=color?'white':'#000';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// =========== SPEAK ===========
+function speak(text){
+  if('speechSynthesis' in window){
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=0.72;u.lang='en-US';
+    window.speechSynthesis.speak(u);
+  }
+}
+
+// =========== HOME ===========
+function renderHome(){
+  document.getElementById('streakBadge').textContent='🔥 '+S.streak+' days';
+  document.getElementById('hSessions').textContent=S.sessions;
+  document.getElementById('hWords').textContent=S.totalWords;
+  document.getElementById('hMins').textContent=S.minsToday;
+}
+renderHome();
+
+// =========== BREATH ===========
+const breathExs=[
+  {name:'Box',label:'Box Breathing',phases:['Inhale','Hold','Exhale','Hold'],durs:[4,4,4,4],why:'Box breathing calms the nervous system and builds steady air pressure — the foundation of a controlled, audible voice. Used by singers, actors, and athletes.',tip:'Feel your belly expand first, then chest. This is diaphragmatic breathing — not shallow chest breathing.'},
+  {name:'4-7-8',label:'4-7-8 Method',phases:['Inhale','Hold','Exhale','—'],durs:[4,7,8,0],why:'The extended exhale trains breath economy — holding more air in reserve to sustain longer sentences without running out of air mid-sentence.',tip:'Exhale through slightly parted lips making a soft hiss. This sound is controlled breath support.'},
+  {name:'Sustained',label:'Sustained Exhale',phases:['Inhale','Exhale slowly','—','—'],durs:[4,14,0,0],why:'Builds the muscle endurance to keep your voice strong through a full sentence. Prevents trailing off at the end of sentences.',tip:'While exhaling, hum quietly. Feel vibration in chest — that is resonance, what makes voices sound full and carry further.'},
+  {name:'Straw',label:'Straw Exhale',phases:['Inhale','Exhale through pursed lips','—','—'],durs:[4,10,0,0],why:'Pursed lip exhale creates back-pressure that strengthens respiratory muscles used for speech projection. Used in voice therapy.',tip:'Purse lips tight as if blowing through a thin straw. Keep it steady — no bursts. Feel resistance in your chest.'},
+  {name:'Counted',label:'Counted Exhale',phases:['Inhale','Count out loud','—','—'],durs:[4,16,0,0],why:'Trains breath management for speech specifically. Counting out loud uses breath exactly like speaking — you learn to pace your air for sentences.',tip:'Count "one, two, three..." out loud on one breath. Try to reach 20 before running out. Each number is one word.'},
+  {name:'Resonance',label:'Resonance Hum',phases:['Inhale','Hum on exhale','—','—'],durs:[3,12,0,0],why:'Humming on exhale finds your natural resonance — the chest and face vibration that makes your voice carry and sound full without straining.',tip:'Feel vibration in your lips, chest, and nose. Move the pitch up and down slightly to find where it buzzes most. That is your resonant pitch.'},
+];
+
+let bIdx=0,bRunning=false,bRound=0;
+
+function renderBreath(){
+  const tabs=document.getElementById('breathTabs');
+  tabs.innerHTML='';
+  breathExs.forEach((ex,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===bIdx?' active':'');
+    b.textContent=ex.name;
+    b.onclick=()=>{stopBreath();bIdx=i;renderBreath();};
+    tabs.appendChild(b);
+  });
+  const ex=breathExs[bIdx];
+  document.getElementById('breathExBadge').textContent=ex.name;
+  document.getElementById('bWhyBox').textContent=ex.why;
+  document.getElementById('bPhase').textContent=ex.label;
+  document.getElementById('bCount').textContent='';
+  document.getElementById('bTip').textContent=ex.tip;
+  document.getElementById('bCircleText').textContent='Ready';
+  document.getElementById('bStartBtn').textContent='Start';
+  document.getElementById('bRing').style.strokeDashoffset='565';
+}
+
+function startBreath(){
+  if(bRunning)return;
+  bRunning=true;bRound=0;
+  document.getElementById('bStartBtn').textContent='Running...';
+  runBreath();
+}
+
+function runBreath(){
+  const ex=breathExs[bIdx];
+  const valid=ex.phases.map((p,i)=>({p,d:ex.durs[i]})).filter(x=>x.d>0);
+  let vi=0;
+  function next(){
+    if(!bRunning||vi>=valid.length){
+      bRound++;
+      if(bRound>=4){stopBreath();toast('Breath session done! 🫁');S.minsToday+=2;S.sessions++;save();renderHome();return;}
+      vi=0;
+    }
+    const {p,d}=valid[vi];
+    document.getElementById('bPhase').textContent=p;
+    document.getElementById('bTip').textContent='Round '+(bRound+1)+' of 4';
+    const scale=p==='Inhale'?1.25:p.includes('Hold')?1.25:0.85;
+    document.getElementById('bCircle').style.transform=`scale(${scale})`;
+    document.getElementById('bCircle').style.transition=`transform ${d*0.8}s ease`;
+    document.getElementById('bCircleText').textContent=p;
+    let rem=d;
+    const tick=setInterval(()=>{
+      if(!bRunning){clearInterval(tick);return;}
+      document.getElementById('bCount').textContent=rem;
+      document.getElementById('bRing').style.strokeDashoffset=565-(565*((d-rem)/d));
+      rem--;
+      if(rem<0){clearInterval(tick);vi++;setTimeout(next,200);}
+    },1000);
+  }
+  next();
+}
+
+function stopBreath(){
+  bRunning=false;
+  document.getElementById('bPhase').textContent='Stopped';
+  document.getElementById('bCount').textContent='';
+  document.getElementById('bCircleText').textContent='Ready';
+  document.getElementById('bStartBtn').textContent='Start';
+  document.getElementById('bRing').style.strokeDashoffset='565';
+  document.getElementById('bCircle').style.transform='scale(1)';
+}
+
+// =========== VOICE STRENGTH ===========
+const voiceGroups=[
+  {name:'Projection',exercises:[
+    {name:'Sustained AH',desc:'Take a full breath. Open mouth wide and sustain the AH sound for as long as possible on one breath. Goal is 15 seconds. Time yourself.',goal:'15 sec',why:'Sustained phonation directly measures and builds vocal fold strength. 15 seconds is the clinical benchmark for healthy voice.',timer:true,seconds:15},
+    {name:'Volume Ladder',desc:'Say the phrase "I am here" starting at a whisper. Repeat 5 times getting louder each time until the last one is your loudest comfortable voice.',goal:'5 levels',why:'Training the volume range teaches your voice to project without strain. Most people use only 20 percent of their volume range.',timer:false},
+    {name:'Wall Projection',desc:'Stand 3 feet from a wall. Speak a sentence toward the wall. Imagine your voice must hit the wall and bounce back to you. Do 10 sentences.',goal:'10 sentences',why:'Visualization of projection changes how you physically produce voice — you naturally open your throat and increase air support.',timer:false},
+    {name:'Counting Crescendo',desc:'Count from 1 to 20 out loud. Start very quietly at 1 and get louder with each number so 20 is your loudest. Each number is one step louder.',goal:'1 to 20',why:'This trains breath-volume coordination — using more air support as volume increases rather than just squeezing the throat.',timer:false},
+  ]},
+  {name:'Resonance',exercises:[
+    {name:'Chest Hum',desc:'Hum on one breath with lips closed. Place one hand on your chest. Try to feel vibration in your chest — not just your throat. Move pitch slightly until you find the strongest chest buzz.',goal:'4 rounds',why:'Chest resonance makes your voice sound full and carry further without effort. It is the difference between a thin voice and a rich voice.',timer:true,seconds:10},
+    {name:'Face Buzz',desc:'Hum and try to feel vibration in your nose, cheeks, and forehead — not just your throat. Place fingers lightly on your face to feel it. This is called forward resonance.',goal:'4 rounds',why:'Forward resonance (mask resonance) projects the voice outward. Voices without forward resonance sound muffled and hard to understand.',timer:true,seconds:10},
+    {name:'Ng-AH Slide',desc:'Say NG (like in sing) and then open into AH without stopping the voice. Repeat 10 times. This connects nasal resonance to open vowel production.',goal:'10 reps',why:'The NG position opens the back of the throat and activates resonance chambers. Sliding to AH trains you to keep that openness for vowels.',timer:false},
+    {name:'Mmmm-AH',desc:'Start with a long Mmmm with lips closed. Feel the buzz. Then open lips into AH and try to keep the same buzz feeling in your face. Repeat 10 times.',goal:'10 reps',why:'M is the easiest resonant sound. Carrying that forward buzz into AH teaches you to use resonance during actual speech sounds.',timer:false},
+  ]},
+  {name:'Pitch',exercises:[
+    {name:'Pitch Glide Up',desc:'Start on your lowest comfortable note. Slide your voice up slowly to your highest comfortable note on AH. One breath. No jumping — smooth glide.',goal:'5 glides',why:'Pitch flexibility prevents the monotone quality that makes speech hard to follow. Full range shows vocal fold health and control.',timer:false},
+    {name:'Pitch Glide Down',desc:'Start on your highest comfortable note. Slide your voice down slowly to your lowest note on AH. One breath. Smooth and controlled.',goal:'5 glides',why:'The downward glide is particularly useful — sentences in English naturally fall in pitch at the end, signaling completion.',timer:false},
+    {name:'Step Scale',desc:'Sing or speak the notes do-re-mi-fa-sol-fa-mi-re-do on AH or a vowel. Do it slowly and feel each distinct pitch step.',goal:'5 scales',why:'Discrete pitch steps train the fine motor control of the vocal folds. Each step requires precise tension adjustment.',timer:false},
+    {name:'Intonation Drill',desc:'Say "Really?" three times — first as a genuine question (pitch rises), then as surprise (pitch rises sharply), then as sarcasm (pitch falls then rises). Exaggerate.',goal:'5 sets',why:'Intonation carries as much meaning as words. Flat intonation makes speech hard to understand and sounds emotionless.',timer:false},
+  ]},
+  {name:'Clarity',exercises:[
+    {name:'Over-articulate Drill',desc:'Say each sentence at half speed with EXAGGERATED mouth movements — open wider, close tighter, extend vowels longer. Say: "I need to speak more clearly every single day."',goal:'10 reps',why:'Over-articulation in practice translates to adequate articulation in natural speech. You train the full range of motion so normal speech only uses part of it.',timer:false},
+    {name:'Tongue Twisters',desc:'Say slowly then build speed: "She sells seashells by the seashore." Then: "Red lorry yellow lorry." Then: "Unique New York." Three times each.',goal:'3x each',why:'Tongue twisters force rapid precise articulator movements. Errors reveal which specific consonant transitions are weakest for you.',timer:false},
+    {name:'Sentence Clarity Test',desc:'Record yourself on your phone saying: "I am working on speaking more clearly so people can understand me better." Then play it back and count how many words are clear.',goal:'Self-assess',why:'Self-monitoring is the core skill of speech improvement. Hearing the gap between what you intend and what comes out drives the most improvement.',timer:false},
+    {name:'Read Aloud',desc:'Find any text — news, a book, anything. Read aloud for 3 minutes at a slightly slower than normal pace, focusing on clear consonants at the end of every word.',goal:'3 min',why:'Final consonants (the T in "cat", the D in "said") are where intelligibility lives. They are the first to drop in unclear speech and the most important to restore.',timer:true,seconds:180},
+  ]},
+];
+
+let voiceGroupIdx=0;
+let voiceTimers={};
+
+function renderVoice(){
+  const tabs=document.getElementById('voiceTabs');
+  tabs.innerHTML='';
+  voiceGroups.forEach((g,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===voiceGroupIdx?' active':'');
+    b.textContent=g.name;
+    b.onclick=()=>{voiceGroupIdx=i;renderVoice();};
+    tabs.appendChild(b);
+  });
+  const group=voiceGroups[voiceGroupIdx];
+  const content=document.getElementById('voiceContent');
+  content.innerHTML='';
+  group.exercises.forEach((ex,ei)=>{
+    const card=document.createElement('div');
+    card.className='vs-card';
+    let timerHTML='';
+    if(ex.timer){
+      const key='vt_'+voiceGroupIdx+'_'+ei;
+      timerHTML=`<div class="vs-timer" id="${key}">0:${String(ex.seconds).padStart(2,'0')}</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="startVTimer('${key}',${ex.seconds})">Start Timer</button>
+        <button class="btn btn-secondary btn-sm" onclick="stopVTimer('${key}',${ex.seconds})" style="width:70px;">Reset</button>
+      </div>`;
+    }
+    card.innerHTML=`
+      <div class="vs-title">${ex.name} <span style="font-size:11px;font-weight:400;color:var(--sub);font-family:'JetBrains Mono',monospace;">Goal: ${ex.goal}</span></div>
+      <div class="vs-desc">${ex.desc}</div>
+      <div class="why-box"><div class="why-label">Why it works</div>${ex.why}</div>
+      ${timerHTML}
+      ${!ex.timer?`<button class="btn btn-secondary" onclick="toast('Great work! 💪')">Mark Complete</button>`:''}`;
+    content.appendChild(card);
+  });
+}
+
+function startVTimer(key,total){
+  if(voiceTimers[key])return;
+  let rem=total;
+  voiceTimers[key]=setInterval(()=>{
+    rem--;
+    const el=document.getElementById(key);
+    if(el)el.textContent=Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0');
+    if(rem<=0){stopVTimer(key,total);toast('Exercise complete! 🎙');}
+  },1000);
+}
+function stopVTimer(key,total){
+  clearInterval(voiceTimers[key]);
+  delete voiceTimers[key];
+  const el=document.getElementById(key);
+  if(el)el.textContent='0:'+String(total).padStart(2,'0');
+}
+
+// =========== MUSCLE ===========
+const muscleGroups=[
+  {name:'Lips',exercises:[
+    {name:'Lip Trills',desc:'Blow air through relaxed closed lips so they vibrate rapidly like a motorboat. Sustain for 5 seconds per rep.',reps:10,why:'Warms up lip muscles and trains breath flow control simultaneously. Loosens any tension holding the lips stiff.'},
+    {name:'Lip Press',desc:'Press lips firmly together and hold for 3 seconds. Release fully. Builds strength for B, P, and M sounds.',reps:15,why:'B, P, and M all require full lip closure. Weak lip muscles produce sounds that are too open and unclear.'},
+    {name:'EEE to OOO',desc:'Stretch lips wide into exaggerated smile saying EEE, then round them forward into tight O saying OOO. Alternate slowly and deliberately.',reps:12,why:'This is the core vowel articulation movement. The full range from spread to rounded is needed for all vowel sounds.'},
+    {name:'Lip Pops',desc:'Form a tight seal with lips, build air pressure behind them, release with a loud POP sound.',reps:15,why:'Trains the explosive P and B sounds. The pop should be audible — if quiet, build more pressure first.'},
+    {name:'Lip Resistance',desc:'Press finger against outside of lips while trying to open them. Hold resistance 3 seconds. Both sides.',reps:10,why:'Isometric resistance training for lip muscles. Same principle as using weights in the gym — resistance builds strength faster.'},
+  ]},
+  {name:'Tongue',exercises:[
+    {name:'Tongue Push Up',desc:'Push tongue tip firmly against the ridge just behind upper front teeth and hold 3 seconds. This is the T, D, N, L position.',reps:15,why:'Builds the muscles for crisp T, D, N, L sounds. Weak tongue tip is the most common cause of slurred consonants.'},
+    {name:'Tongue Sweep',desc:'Starting at back left molar, sweep tongue firmly along upper gum line all the way to back right molar. Slow and deliberate.',reps:10,why:'Builds precise muscle control across the full articulation range needed for different consonant positions.'},
+    {name:'Tongue Clicks',desc:'Suction the tongue to the roof of the mouth then release with a sharp loud click. The click should be crisp.',reps:20,why:'Tongue suction strength directly improves the crispness of K and G sounds and tongue body control overall.'},
+    {name:'Tongue Tap',desc:'Rapidly tap tongue tip just behind upper front teeth. This is the T, D, N, L position. Fast: TDTDTDTD.',reps:30,why:'Speed and accuracy here transfers directly to faster, clearer speech at normal conversational pace.'},
+    {name:'Tongue Push Side',desc:'Push tongue firmly against inside of each cheek and hold 3 seconds per side. Feel the resistance.',reps:10,why:'Lateral tongue strength affects R sounds and the precision of back-of-mouth movements for K and G.'},
+  ]},
+  {name:'Jaw',exercises:[
+    {name:'Jaw Drop',desc:'Open mouth as wide as comfortable, hold 3 seconds, close slowly. Do not force it — just a comfortable wide open.',reps:10,why:'Vowel clarity depends on jaw opening. A tight jaw muffles every vowel. This directly improves vowel intelligibility.'},
+    {name:'Jaw Circles',desc:'Move jaw in slow circles — down, left, forward, right, back to center. Both directions.',reps:8,why:'Jaw tension is one of the top causes of muffled, unclear speech. Circular motion releases all jaw joint tension.'},
+    {name:'Chewing Exaggeration',desc:'Chew an imaginary tough piece of gum with exaggerated movements. Open wide, move jaw side to side, really work it.',reps:20,why:'Mobilizes the temporomandibular joint and warms up chewing muscles that support speech articulation posture.'},
+    {name:'Jaw Resistance',desc:'Place hand under jaw. Try to open jaw while hand resists downward movement. Hold 3 seconds.',reps:10,why:'Isometric jaw exercise. Builds the opening strength needed for clear vowels without straining.'},
+  ]},
+  {name:'Soft Palate',exercises:[
+    {name:'Yawn Stretch',desc:'Trigger or fake a wide yawn and hold the open position for 3 seconds. Feel the back of your mouth lift.',reps:10,why:'The soft palate controls nasal resonance. Raising it reduces the nasal quality that affects some deaf speakers.'},
+    {name:'K-G Drill',desc:'Say K-G-K-G-K-G repeatedly feeling the back of your tongue touch the soft palate. Start slow then build speed.',reps:15,why:'Directly trains soft palate and tongue body coordination for K and G sounds — the most commonly weak back consonants.'},
+    {name:'Gargle Hold',desc:'Tilt head back slightly and gargle with air — no water. Hold the vibrating position for 3 seconds.',reps:8,why:'Gargling is isometric exercise for the soft palate muscles. Simple and very effective for palatal strength.'},
+    {name:'Na-Nga Drill',desc:'Alternate between NA and NGA slowly. NA: tongue tip on ridge. NGA: tongue body rises to back. Feel the different positions.',reps:12,why:'Trains the contrast between front-tongue nasals and back-tongue nasals — important for N vs NG distinction.'},
+  ]},
+];
+
+let muscleGroupIdx=0;
+
+function renderMuscle(){
+  const tabs=document.getElementById('muscleTabs');
+  tabs.innerHTML='';
+  muscleGroups.forEach((g,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===muscleGroupIdx?' active':'');
+    b.textContent=g.name;
+    b.onclick=()=>{muscleGroupIdx=i;renderMuscle();};
+    tabs.appendChild(b);
+  });
+  const group=muscleGroups[muscleGroupIdx];
+  const content=document.getElementById('muscleContent');
+  content.innerHTML='';
+  group.exercises.forEach((ex,ei)=>{
+    const card=document.createElement('div');
+    card.className='card';
+    const rkey=muscleGroupIdx+'_'+ei;
+    card.innerHTML=`
+      <div class="card-header" onclick="this.closest('.card').classList.toggle('open');this.querySelector('.card-arrow').style.transform=this.closest('.card').classList.contains('open')?'rotate(180deg)':''">
+        <div class="card-icon" style="background:var(--s3);font-size:13px;font-weight:700;color:var(--accent2);">${ei+1}</div>
+        <div class="card-info"><div class="card-title">${ex.name}</div><div class="card-sub">${ex.reps} reps</div></div>
+        <span class="card-arrow">▾</span>
+      </div>
+      <div class="card-body">
+        <div class="muscle-ex">
+          <div class="muscle-desc">${ex.desc}</div>
+          <div class="why-box"><div class="why-label">Why it works</div>${ex.why}</div>
+          <div class="rep-row">
+            <div class="rep-lbl">Reps done:</div>
+            <button class="rep-btn" onclick="changeRep('${rkey}',-1)">−</button>
+            <div class="rep-num" id="rep_${rkey}">${S.repCounts[rkey]||0}</div>
+            <button class="rep-btn" onclick="changeRep('${rkey}',1)">+</button>
+            <div style="font-size:11px;color:var(--dim);">/ ${ex.reps}</div>
+          </div>
+          <button class="btn btn-primary" onclick="doneEx('${rkey}',${ex.reps})">Mark Complete ✓</button>
+        </div>
+      </div>`;
+    content.appendChild(card);
+  });
+}
+
+function changeRep(key,d){
+  S.repCounts[key]=Math.max(0,(S.repCounts[key]||0)+d);
+  const el=document.getElementById('rep_'+key);
+  if(el)el.textContent=S.repCounts[key];
+  save();
+}
+function doneEx(key,total){
+  S.repCounts[key]=total;S.sessions++;save();
+  renderMuscle();toast('Exercise complete! 💪');renderHome();
+}
+
+// =========== SOUNDS ===========
+const vowelSounds=[
+  {sym:'iː',anchor:'EE',words:'see / me / feet',ipa:'/iː/',note:'Long, stretched — hold it',mouth:'Lips spread wide like a big smile. Tongue high and pushed forward. Hold the sound — it is long.',chips:['see','me','feet','need','green','sleep','teeth','keep']},
+  {sym:'ʊ',anchor:'Short OO',words:'book / good / look',ipa:'/ʊ/',note:'Short, LOOSE round — NOT food',mouth:'Lips round LOOSELY — not pushed forward tight. Very short. This is good, book, foot, put, could, would, should. Completely different from the long OO in food.',chips:['book','good','look','cook','foot','put','full','could']},
+  {sym:'uː',anchor:'Long OO',words:'food / moon / blue',ipa:'/uː/',note:'Long, TIGHT round — lips push forward',mouth:'Lips round and push forward like a kiss. Tongue high and back. Long sustained sound. Completely different from the short OO in book.',chips:['food','moon','blue','move','true','you','do','rule']},
+  {sym:'ɪ',anchor:'Short IH',words:'sit / bit / tip',ipa:'/ɪ/',note:'Short, quick — not like EE',mouth:'Lips slightly spread, very relaxed. Tongue high but not tense. Very short — it disappears fast.',chips:['sit','bit','tip','pick','fish','ship','hill','this']},
+  {sym:'e',anchor:'Short EH',words:'bed / red / best',ipa:'/e/',note:'Short, open — jaw drops a little',mouth:'Jaw drops slightly. Lips relaxed. Tongue middle height. Quick — it is a short sound.',chips:['bed','red','best','ten','left','next','get','help']},
+  {sym:'æ',anchor:'Wide AH',words:'cat / bad / man',ipa:'/æ/',note:'Wide open jaw — most open short vowel',mouth:'Jaw drops WIDE — wider than you think. Tongue low and pushed forward. This is the sound in cat, bad, man, back, plan.',chips:['cat','bad','man','back','hand','past','ask','fast']},
+  {sym:'ɑː',anchor:'Long AH',words:'father / car / calm',ipa:'/ɑː/',note:'Deep open — jaw wide, tongue back',mouth:'Jaw drops wide. Tongue low and BACK. Lips relaxed. Long sound. Different from Wide AH where tongue is forward.',chips:['father','car','calm','far','heart','art','park','dark']},
+  {sym:'ɔː',anchor:'AW',words:'ball / walk / talk',ipa:'/ɔː/',note:'Round and open — lips slightly round',mouth:'Lips round slightly. Jaw drops and back. Tongue low and back. Long and round.',chips:['ball','walk','talk','call','fall','small','tall','saw']},
+  {sym:'ʌ',anchor:'Short UH',words:'cup / but / love',ipa:'/ʌ/',note:'Central, short — most common vowel',mouth:'Jaw half open. Tongue in CENTER of mouth. Completely relaxed. Most common vowel in English.',chips:['cup','but','love','fun','run','come','some','done']},
+  {sym:'ə',anchor:'Schwa',words:'the / about / happen',ipa:'/ə/',note:'Unstressed UH — barely there',mouth:'Same as short UH but even lighter. Appears in ALL unstressed syllables. The A in about, E in happen, O in person.',chips:['the','about','happen','system','person','again','open','taken']},
+  {sym:'eɪ',anchor:'AY glide',words:'say / may / late',ipa:'/eɪ/',note:'Glide from EH up to EE',mouth:'Start with jaw half open like EH. Tongue glides up and forward into EE position. Two movements — do not stop in the middle.',chips:['say','may','late','name','game','place','face','day']},
+  {sym:'aɪ',anchor:'EYE glide',words:'my / night / time',ipa:'/aɪ/',note:'Glide from wide AH to EE',mouth:'Start with jaw WIDE open like father. Glide up and close into EE. A big movement.',chips:['my','night','time','like','right','side','wide','mind']},
+  {sym:'əʊ',anchor:'OH glide',words:'go / home / no',ipa:'/əʊ/',note:'Glide from UH to OO',mouth:'Start with lips relaxed in UH. Round lips and glide toward long OO. A round glide.',chips:['go','home','no','note','bone','show','row','know']},
+  {sym:'aʊ',anchor:'OW glide',words:'now / out / how',ipa:'/aʊ/',note:'Glide from wide AH to OO',mouth:'Start with jaw wide open. Round lips and close toward long OO. Big dramatic glide.',chips:['now','out','how','down','found','mouth','loud','cloud']},
+];
+
+const consonantSounds=[
+  {sym:'p',anchor:'P',words:'pop / pay / cup',ipa:'/p/',note:'Lips together, air burst — no voice',mouth:'Press lips FULLY together. Build pressure. Release with a burst of air. NO vibration. Hand in front of mouth — feel a puff.',chips:['pop','pay','cup','park','step','help','people','happy']},
+  {sym:'b',anchor:'B',words:'bet / ball / baby',ipa:'/b/',note:'Lips together, burst — WITH voice',mouth:'Same as P — press lips fully together. Add VOICE vibration in throat as you release. P and B are identical except for voice.',chips:['bet','ball','baby','back','job','above','public','number']},
+  {sym:'t',anchor:'T',words:'top / ten / cat',ipa:'/t/',note:'Tongue tip on ridge, burst — no voice',mouth:'Touch tongue tip FIRMLY to the ridge just behind upper front teeth. Release with a sharp burst. No throat vibration.',chips:['top','ten','cat','take','stop','what','better','water']},
+  {sym:'d',anchor:'D',words:'dog / day / bed',ipa:'/d/',note:'Tongue tip on ridge — WITH voice',mouth:'Same tongue position as T. Add voice vibration. T and D are identical except for voice.',chips:['dog','day','bed','down','under','body','ready','cloud']},
+  {sym:'k',anchor:'K',words:'cat / cool / back',ipa:'/k/',note:'Back of tongue on soft palate — no voice',mouth:'Back of tongue touches the SOFT PALATE at back of roof. Release with a burst. No voice.',chips:['cat','cool','back','keep','skin','fact','black','clock']},
+  {sym:'ɡ',anchor:'G',words:'go / girl / big',ipa:'/ɡ/',note:'Back of tongue, soft palate — WITH voice',mouth:'Same back-tongue position as K. Add voice vibration. K and G are identical except for voice.',chips:['go','girl','big','game','again','dog','leg','bag']},
+  {sym:'f',anchor:'F',words:'fun / off / face',ipa:'/f/',note:'Upper teeth on lower lip — no voice',mouth:'Rest upper FRONT TEETH lightly on LOWER LIP. Push a steady stream of air through. No vibration.',chips:['fun','off','face','from','left','after','often','life']},
+  {sym:'v',anchor:'V',words:'van / love / five',ipa:'/v/',note:'Upper teeth on lower lip — WITH voice',mouth:'Same teeth-on-lip position as F. Add VOICE — feel the buzz on your lip. F and V are identical except for voice.',chips:['van','love','five','very','have','live','move','give']},
+  {sym:'s',anchor:'S',words:'see / his / some',ipa:'/s/',note:'Tongue near teeth, hiss — no voice',mouth:'Tongue tip near but NOT touching the back of upper teeth. Push air through. A steady sustained hiss.',chips:['see','his','some','last','most','class','also','first']},
+  {sym:'z',anchor:'Z',words:'zoo / has / please',ipa:'/z/',note:'Tongue near teeth, buzz — WITH voice',mouth:'Same tongue position as S. Add voice — the hiss becomes a BUZZ like a bee. S and Z are identical except for voice.',chips:['zoo','has','please','because','easy','always','music','those']},
+  {sym:'ʃ',anchor:'SH',words:'she / wish / show',ipa:'/ʃ/',note:'Tongue back, lips slightly forward',mouth:'Tongue moves slightly BACK from S position. Lips move forward very slightly. A softer, lower rushing sound than S.',chips:['she','wish','show','should','fish','wash','machine','short']},
+  {sym:'θ',anchor:'TH hard',words:'think / three / math',ipa:'/θ/',note:'Tongue between teeth — no voice',mouth:'Stick tongue tip gently between teeth. Push air through. NO voice at all.',chips:['think','three','math','through','thank','both','teeth','truth']},
+  {sym:'ð',anchor:'TH soft',words:'the / this / that',ipa:'/ð/',note:'Tongue between teeth — WITH voice',mouth:'Same tongue-between-teeth position. Add VOICE — feel buzz on tongue tip. This is the TH in the, this, that, they, with.',chips:['the','this','that','then','they','with','other','together']},
+  {sym:'m',anchor:'M',words:'me / mom / some',ipa:'/m/',note:'Lips together, hum through nose',mouth:'Press lips FULLY together. HUM — feel vibration in lips, cheeks, nose. Air goes through the NOSE.',chips:['me','mom','some','make','came','time','family','from']},
+  {sym:'n',anchor:'N',words:'no / in / sun',ipa:'/n/',note:'Tongue on ridge, hum through nose',mouth:'Touch tongue tip to ridge behind upper teeth. HUM — feel it in your nose. Air goes through the NOSE.',chips:['no','in','sun','now','one','can','find','know']},
+  {sym:'ŋ',anchor:'NG',words:'sing / ring / thing',ipa:'/ŋ/',note:'Back of tongue up, hum through nose',mouth:'Back of tongue rises to soft palate. HUM through nose. No burst of air. Air goes through nose.',chips:['sing','ring','thing','long','song','bring','king','strong']},
+  {sym:'l',anchor:'L',words:'late / all / feel',ipa:'/l/',note:'Tongue tip on ridge, voice flows around sides',mouth:'Touch tongue tip FIRMLY to ridge behind upper teeth. Keep it there while voicing. Air flows around the SIDES of the tongue.',chips:['late','all','feel','look','still','well','help','world']},
+  {sym:'r',anchor:'R',words:'run / try / far',ipa:'/r/',note:'Tongue curls back — does not touch anything',mouth:'Tongue tip curls slightly BACK — it does not touch anything. Key difference from L: L tongue touches the ridge, R does not.',chips:['run','try','far','right','around','every','really','other']},
+  {sym:'w',anchor:'W',words:'we / will / want',ipa:'/w/',note:'Lips round tight then open — a glide',mouth:'Start with lips ROUNDED TIGHT like long OO. Then immediately open into the next vowel. A very quick glide.',chips:['we','will','want','work','when','world','water','well']},
+  {sym:'h',anchor:'H',words:'he / hat / have',ipa:'/h/',note:'Open throat, push air out',mouth:'Open mouth and throat. Push a gentle stream of air out BEFORE the vowel. No specific tongue or lip position.',chips:['he','hat','have','help','here','hold','how','behind']},
+  {sym:'tʃ',anchor:'CH',words:'chip / watch / choose',ipa:'/tʃ/',note:'T then SH together — two movements',mouth:'Start by touching tongue tip to the ridge like T. Then RELEASE into SH — tongue moves back. Two movements: stop then friction.',chips:['chip','watch','choose','reach','touch','each','teach','catch']},
+  {sym:'dʒ',anchor:'J',words:'jump / age / enjoy',ipa:'/dʒ/',note:'D then ZH together — voiced CH',mouth:'Same two-part movement as CH. Start with D, release into ZH. Add voice throughout. CH and J are identical except for voice.',chips:['jump','age','enjoy','just','major','edge','change','large']},
+];
+
+const minimalPairs=[
+  {a:'pat',b:'bat',focus:'P vs B — same position, only voice differs'},
+  {a:'tin',b:'din',focus:'T vs D — tongue position identical, voice is the difference'},
+  {a:'cap',b:'gap',focus:'K vs G — back of tongue, only voice differs'},
+  {a:'fine',b:'vine',focus:'F vs V — teeth on lip, voice is the difference'},
+  {a:'sink',b:'zinc',focus:'S vs Z — hiss vs buzz at same tongue position'},
+  {a:'ship',b:'chip',focus:'SH vs CH — SH is continuous, CH has a stop first'},
+  {a:'light',b:'right',focus:'L vs R — L tongue touches ridge, R does not'},
+  {a:'think',b:'sink',focus:'TH vs S — tongue between teeth vs behind teeth'},
+  {a:'good',b:'food',focus:'Short OO vs Long OO — loose round vs tight round'},
+  {a:'bed',b:'bad',focus:'EH vs Wide AH — jaw drops more for bad'},
+  {a:'west',b:'best',focus:'W vs B — W is a glide, B is a full stop'},
+  {a:'he',b:'she',focus:'H vs SH — H is open airflow, SH has tongue back'},
+];
+
+let soundTabIdx=0;
+let openSlibKey=null;
+
+function renderSounds(){
+  const tabs=document.getElementById('soundTabs');
+  tabs.innerHTML='';
+  ['Vowels','Consonants','Min. Pairs'].forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===soundTabIdx?' active':'');
+    b.textContent=t;
+    b.onclick=()=>{soundTabIdx=i;openSlibKey=null;renderSounds();};
+    tabs.appendChild(b);
+  });
+  const content=document.getElementById('soundContent');
+  content.innerHTML='';
+  if(soundTabIdx===0)renderSoundGroup(content,vowelSounds,'var(--teal)');
+  else if(soundTabIdx===1)renderSoundGroup(content,consonantSounds,'var(--accent2)');
+  else renderMinPairs(content);
+}
+
+function renderSoundGroup(content,sounds,color){
+  sounds.forEach((s,i)=>{
+    const key='sl_'+soundTabIdx+'_'+i;
+    const isOpen=openSlibKey===key;
+    const row=document.createElement('div');
+    row.className='slib-row'+(isOpen?' open':'');
+    row.innerHTML=`
+      <div class="slib-header" onclick="toggleSlib('${key}')">
+        <div class="slib-sym" style="color:${color};">${s.sym}</div>
+        <div style="flex:1;">
+          <div class="slib-ipa">${s.ipa}</div>
+          <div class="slib-anchor">${s.anchor} — <span style="color:var(--sub);font-weight:400;">${s.words}</span></div>
+          <div class="slib-note">${s.note}</div>
+        </div>
+        <button onclick="event.stopPropagation();speak('${s.chips[0]}')" style="background:var(--s3);border:1px solid var(--border);border-radius:7px;padding:5px 9px;color:var(--sub);font-size:12px;cursor:pointer;margin-right:8px;">🔊</button>
+        <span style="color:var(--dim);font-size:11px;">▾</span>
+      </div>
+      <div class="slib-body">
+        <div class="mouth-tip">${s.mouth}</div>
+        <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">Tap to hear</div>
+        <div class="chip-row">${s.chips.map(w=>`<button class="chip" onclick="speak('${w}')">${w}</button>`).join('')}</div>
+      </div>`;
+    content.appendChild(row);
+  });
+}
+
+function renderMinPairs(content){
+  const intro=document.createElement('div');
+  intro.className='info-box';
+  intro.textContent='Two words that differ by exactly one sound. Tap each word to hear the difference. If you can produce the difference, your articulation is working.';
+  content.appendChild(intro);
+  minimalPairs.forEach(pair=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.marginBottom='8px';
+    card.innerHTML=`
+      <div style="padding:13px 15px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+          <button onclick="speak('${pair.a}')" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:11px;font-size:19px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);cursor:pointer;">${pair.a}</button>
+          <div style="color:var(--dim);font-size:11px;">vs</div>
+          <button onclick="speak('${pair.b}')" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:11px;font-size:19px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);cursor:pointer;">${pair.b}</button>
+        </div>
+        <div style="font-size:12px;color:var(--sub);border-top:1px solid var(--border);padding-top:9px;">${pair.focus}</div>
+      </div>`;
+    content.appendChild(card);
+  });
+}
+
+function toggleSlib(key){openSlibKey=openSlibKey===key?null:key;renderSounds();}
+
+// =========== WORDS ===========
+const wordDays=[
+  {label:'Level 1',theme:'Short words',note:'1 to 2 syllables. Master the basic sounds first.',words:[
+    {word:'help',syl:'HELP',ipa:'/help/',sounds:[{syl:'H',ipa:'/h/',type:'voiceless',anchor:'H in hat',how:'Open throat, push air out. No specific position.'},{syl:'EH',ipa:'/e/',type:'vowel',anchor:'E in bed',how:'Jaw drops slightly. Short and open. Not EE.'},{syl:'L',ipa:'/l/',type:'approx',anchor:'L in late',how:'Tongue tip on ridge. Voice flows around sides.'},{syl:'P',ipa:'/p/',type:'voiceless',anchor:'P in pop',how:'Lips close and pop open with air. No voice.'}]},
+    {word:'call',syl:'CALL',ipa:'/kɔːl/',sounds:[{syl:'K',ipa:'/k/',type:'voiceless',anchor:'K in keep',how:'Back of tongue on soft palate. Burst of air.'},{syl:'AW',ipa:'/ɔː/',type:'vowel',anchor:'AW in ball',how:'Lips round slightly. Jaw drops back. Long round sound.'},{syl:'L',ipa:'/l/',type:'approx',anchor:'L in late',how:'Tongue tip to ridge at the end.'}]},
+    {word:'good',syl:'GOOD',ipa:'/ɡʊd/',sounds:[{syl:'G',ipa:'/ɡ/',type:'voiced',anchor:'G in go',how:'Back of tongue on soft palate. Voiced release.'},{syl:'Short OO',ipa:'/ʊ/',type:'vowel',anchor:'OO in BOOK — NOT food',how:'Lips round LOOSELY. Very short. This is NOT the long OO in food. Most commonly confused vowel.'},{syl:'D',ipa:'/d/',type:'voiced',anchor:'D in dog',how:'Tongue tip on ridge. Voiced — feel buzz in throat.'}]},
+    {word:'think',syl:'THINK',ipa:'/θɪŋk/',sounds:[{syl:'TH',ipa:'/θ/',type:'voiceless',anchor:'TH in think — NOT the',how:'Tongue tip gently between teeth. Push air. NO voice.'},{syl:'IH',ipa:'/ɪ/',type:'vowel',anchor:'I in sit',how:'Lips slightly spread. Tongue high. Very short.'},{syl:'NG',ipa:'/ŋ/',type:'nasal',anchor:'NG in sing',how:'Back of tongue to soft palate. Hum through nose.'},{syl:'K',ipa:'/k/',type:'voiceless',anchor:'K in back',how:'Back of tongue. Crisp release at the end.'}]},
+    {word:'work',syl:'WORK',ipa:'/wɜːrk/',sounds:[{syl:'W',ipa:'/w/',type:'approx',anchor:'W in we',how:'Lips round tight like OO then quickly open — a glide.'},{syl:'UR',ipa:'/ɜːr/',type:'vowel',anchor:'UR in her / fur',how:'Tongue slightly back. Lips relaxed. Very common before R.'},{syl:'K',ipa:'/k/',type:'voiceless',anchor:'K in back',how:'Back of tongue. Quiet release at end.'}]},
+  ]},
+  {label:'Level 2',theme:'2-syllable words',note:'Focus on which syllable is LOUDER — that is the stressed syllable.',words:[
+    {word:'today',syl:'tuh·DAY',ipa:'/təˈdeɪ/',sounds:[{syl:'tuh',ipa:'/tə/',type:'voiceless',anchor:'T then schwa — light',how:'T is quick. Vowel is schwa — barely there.'},{syl:'DAY',ipa:'/deɪ/',type:'voiced',anchor:'D then AY glide — LOUD',how:'Stressed syllable. D: tongue tip voiced. AY: glide from EH up to EE.'}]},
+    {word:'listen',syl:'LIS·en',ipa:'/ˈlɪs.ən/',sounds:[{syl:'LIS',ipa:'/lɪs/',type:'approx',anchor:'L then IH in sit then S hiss',how:'L: tongue to ridge. IH: very short. S: hiss. The T is SILENT in listen.'},{syl:'en',ipa:'/ən/',type:'nasal',anchor:'Schwa then N — very light',how:'Unstressed ending. Almost just "un". The E is schwa.'}]},
+    {word:'people',syl:'PEE·pul',ipa:'/ˈpiː.pəl/',sounds:[{syl:'PEE',ipa:'/piː/',type:'voiceless',anchor:'P pop then long EE in see',how:'P: pop. EE: lips spread wide, tongue high, long. Stressed.'},{syl:'pul',ipa:'/pəl/',type:'voiceless',anchor:'P then schwa then L — light',how:'Second P lighter. Schwa: barely there. L: tongue tip to ridge.'}]},
+    {word:'ready',syl:'RED·ee',ipa:'/ˈred.i/',sounds:[{syl:'RED',ipa:'/red/',type:'voiced',anchor:'R then EH in bed then D',how:'R: tongue curls slightly back. EH: jaw drops, short. D: tongue tip voiced. Stressed.'},{syl:'ee',ipa:'/i/',type:'vowel',anchor:'Short EE — light ending',how:'Unstressed ending. Shorter and lighter than long EE in see.'}]},
+    {word:'before',syl:'buh·FOR',ipa:'/bɪˈfɔːr/',sounds:[{syl:'buh',ipa:'/bɪ/',type:'voiced',anchor:'B then short IH — light',how:'Unstressed start. B: lips pop. IH: very short.'},{syl:'FOR',ipa:'/fɔːr/',type:'voiceless',anchor:'F then AW in ball then R — LOUD',how:'Stressed syllable. F: upper teeth on lower lip. AW: open round. R: tongue curls.'}]},
+  ]},
+  {label:'Level 3',theme:'3-syllable words',note:'One syllable is always loudest. The others reduce to schwa.',words:[
+    {word:'important',syl:'im·POR·tant',ipa:'/ɪmˈpɔːr.tənt/',sounds:[{syl:'im',ipa:'/ɪm/',type:'nasal',anchor:'IH in sit then M — light',how:'Unstressed. Quick IH then lips close for M.'},{syl:'POR',ipa:'/pɔːr/',type:'voiceless',anchor:'P then AW in ball then R — LOUD',how:'Stressed syllable. P: pop. AW: open round. R: tongue curls.'},{syl:'tant',ipa:'/tənt/',type:'voiceless',anchor:'T then schwa then N then T',how:'Two T sounds around schwa. Middle vowel barely heard.'}]},
+    {word:'together',syl:'tuh·GETH·er',ipa:'/təˈɡeð.ər/',sounds:[{syl:'tuh',ipa:'/tə/',type:'voiceless',anchor:'T then schwa — very light',how:'Unstressed. Quick T and schwa.'},{syl:'GETH',ipa:'/ɡeð/',type:'voiced',anchor:'G then EH in bed then voiced TH',how:'G: back of throat voiced. EH: jaw drops. TH: voiced — tongue between teeth WITH buzz.'},{syl:'er',ipa:'/ər/',type:'vowel',anchor:'Schwa R — like her but light',how:'Common unstressed ending. Tongue slightly back, lips relaxed.'}]},
+    {word:'beautiful',syl:'BYOO·ti·ful',ipa:'/ˈbjuː.tɪ.fəl/',sounds:[{syl:'BYOO',ipa:'/bjuː/',type:'voiced',anchor:'B then Y glide then long OO — like few with a B',how:'B: pop. Y: tongue glides from EE position. Long OO: lips round and push forward.'},{syl:'ti',ipa:'/tɪ/',type:'voiceless',anchor:'T then short IH — quick',how:'Quick light syllable. T pops, IH is very short.'},{syl:'ful',ipa:'/fəl/',type:'voiceless',anchor:'F then schwa then L — light ending',how:'NOT fool — much lighter. F: upper teeth on lower lip. Schwa: barely heard. L: tongue to ridge.'}]},
+    {word:'family',syl:'FAM·i·lee',ipa:'/ˈfæm.ɪ.li/',sounds:[{syl:'FAM',ipa:'/fæm/',type:'voiceless',anchor:'F then wide AH in cat then M',how:'F: upper teeth on lower lip. Wide AH: jaw WIDE open. M: lips close, hum through nose.'},{syl:'i',ipa:'/ɪ/',type:'vowel',anchor:'Very short IH — barely there',how:'Often almost skipped in natural speech.'},{syl:'lee',ipa:'/li/',type:'approx',anchor:'L then light EE',how:'L: tongue tip on ridge. EE: light and short at end.'}]},
+    {word:'different',syl:'DIF·er·ent',ipa:'/ˈdɪf.ər.ənt/',sounds:[{syl:'DIF',ipa:'/dɪf/',type:'voiced',anchor:'D then IH in sit then F',how:'D: tongue tip, voiced. IH: short and quick. F: upper teeth on lower lip. Stressed.'},{syl:'er',ipa:'/ər/',type:'vowel',anchor:'Schwa R — very light',how:'Often reduced. Tongue slightly back. Unstressed.'},{syl:'ent',ipa:'/ənt/',type:'nasal',anchor:'Schwa then N then T',how:'Very light ending. Schwa barely heard. N: nasal. T: crisp finish.'}]},
+  ]},
+  {label:'Level 4',theme:'Business words',note:'Crisp consonants make you sound clear and decisive.',words:[
+    {word:'meeting',syl:'MEET·ing',ipa:'/ˈmiː.tɪŋ/',sounds:[{syl:'MEET',ipa:'/miːt/',type:'nasal',anchor:'M then long EE in see then T',how:'M: lips together hum through nose. EE: long, lips spread wide. T: tongue tip, sharp.'},{syl:'ing',ipa:'/ɪŋ/',type:'nasal',anchor:'Short IH then NG in sing',how:'IH: very short. NG: back of tongue to soft palate, hum through nose.'}]},
+    {word:'schedule',syl:'SKED·yool',ipa:'/ˈsked.juːl/',sounds:[{syl:'SKED',ipa:'/sked/',type:'voiceless',anchor:'S hiss then K then EH in bed then D',how:'SK: two consonants — S hiss then K back of throat. EH: quick. D: tongue tip voiced. The C is SK not SH.'},{syl:'yool',ipa:'/juːl/',type:'approx',anchor:'Y glide then long OO then L',how:'Y: tongue glides from EE. Long OO: lips round push forward. L: tongue tip to ridge.'}]},
+    {word:'project',syl:'PROJ·ect',ipa:'/ˈprɒdʒ.ekt/',sounds:[{syl:'PROJ',ipa:'/prɒdʒ/',type:'voiced',anchor:'P then R then short AW then J sound',how:'P: pop. R: tongue curls back. AW: short open round. J: voiced CH — D then ZH.'},{syl:'ect',ipa:'/ekt/',type:'voiceless',anchor:'EH in bed then K then T',how:'EH: short open. K: back of throat. T: crisp finish.'}]},
+    {word:'communicate',syl:'com·MYOO·ni·kayt',ipa:'/kəˈmjuː.nɪ.keɪt/',sounds:[{syl:'com',ipa:'/kəm/',type:'nasal',anchor:'K then schwa then M — light',how:'Unstressed start. K: back of throat. Schwa: barely heard. M: lips close.'},{syl:'MYOO',ipa:'/mjuː/',type:'nasal',anchor:'M then Y glide then long OO — LOUDEST',how:'The stressed syllable. M: lips. Y: tongue glides from EE. Long OO: lips push forward.'},{syl:'ni',ipa:'/nɪ/',type:'nasal',anchor:'N then short IH — light',how:'N: nasal. IH: short and light.'},{syl:'kayt',ipa:'/keɪt/',type:'voiceless',anchor:'K then AY glide then T',how:'K: back of throat. AY: glide from EH to EE. T: crisp finish.'}]},
+    {word:'confident',syl:'KON·fi·dent',ipa:'/ˈkɒn.fɪ.dənt/',sounds:[{syl:'KON',ipa:'/kɒn/',type:'voiceless',anchor:'K then AW then N',how:'K: back of throat. AW: open round. N: nasal. Stressed syllable.'},{syl:'fi',ipa:'/fɪ/',type:'voiceless',anchor:'F then short IH — light',how:'F: upper teeth on lower lip. IH: very short.'},{syl:'dent',ipa:'/dənt/',type:'voiced',anchor:'D then schwa then N then T',how:'D: tongue tip voiced. Schwa: barely heard. N: nasal. T: crisp finish.'}]},
+  ]},
+  {label:'Level 5',theme:'Social words',note:'For meeting people, dating, networking.',words:[
+    {word:'appreciate',syl:'uh·PREE·shee·ayt',ipa:'/əˈpriː.ʃi.eɪt/',sounds:[{syl:'uh',ipa:'/ə/',type:'vowel',anchor:'Schwa — barely there',how:'Completely unstressed opening. Just a soft schwa.'},{syl:'PREE',ipa:'/priː/',type:'voiceless',anchor:'P then R then long EE in see — LOUD',how:'P: pop. R: tongue curls back. Long EE: lips spread wide, hold it. Stressed.'},{syl:'shee',ipa:'/ʃi/',type:'voiceless',anchor:'SH then short EE',how:'SH: tongue back, lips slightly forward. EE: lips spread, shorter here.'},{syl:'ayt',ipa:'/eɪt/',type:'voiceless',anchor:'AY glide in say then T',how:'AY: glide from EH to EE. T: clean crisp finish.'}]},
+    {word:'genuine',syl:'JEN·yoo·in',ipa:'/ˈdʒen.juː.ɪn/',sounds:[{syl:'JEN',ipa:'/dʒen/',type:'voiced',anchor:'J sound then EH in bed then N',how:'J: voiced CH — D then ZH together. EH: jaw drops. N: nasal. Stressed.'},{syl:'yoo',ipa:'/juː/',type:'approx',anchor:'Y glide then long OO in food',how:'Y: tongue glides from EE. Long OO: lips round push forward.'},{syl:'in',ipa:'/ɪn/',type:'nasal',anchor:'Short IH then N — light',how:'IH: barely there. N: nasal finish.'}]},
+    {word:'introduce',syl:'in·truh·DYOOS',ipa:'/ˌɪn.trəˈdjuːs/',sounds:[{syl:'in',ipa:'/ɪn/',type:'nasal',anchor:'Short IH then N — light',how:'Unstressed opening. IH: short. N: nasal.'},{syl:'truh',ipa:'/trə/',type:'voiceless',anchor:'TR blend then schwa — light',how:'TR: two consonants — T then R. Schwa: barely heard.'},{syl:'DYOOS',ipa:'/djuːs/',type:'voiced',anchor:'D then Y glide then long OO then S — LOUD',how:'Stressed. D: tongue tip. Y: glides from EE. Long OO: lips push forward. S: hiss finish.'}]},
+    {word:'comfortable',syl:'KUM·fur·tuh·bul',ipa:'/ˈkʌm.fər.tə.bəl/',sounds:[{syl:'KUM',ipa:'/kʌm/',type:'voiceless',anchor:'K then UH in cup then M',how:'K: back of throat. Short UH: central, relaxed. M: lips close. Stressed.'},{syl:'fur',ipa:'/fər/',type:'voiceless',anchor:'F then UR in fur',how:'F: upper teeth on lower lip. UR: tongue slightly back, lips relaxed.'},{syl:'tuh',ipa:'/tə/',type:'voiceless',anchor:'T then schwa — almost silent',how:'Very light. Often just a light T in natural speech.'},{syl:'bul',ipa:'/bəl/',type:'voiced',anchor:'B then schwa then L — light ending',how:'B: lips pop lightly. Schwa: barely heard. L: tongue tip to ridge.'}]},
+    {word:'consistent',syl:'kun·SIS·tent',ipa:'/kənˈsɪs.tənt/',sounds:[{syl:'kun',ipa:'/kən/',type:'voiceless',anchor:'K then schwa then N — light',how:'Unstressed start. K: back of throat. Schwa: very short. N: nasal.'},{syl:'SIS',ipa:'/sɪs/',type:'voiceless',anchor:'S hiss then IH in sit then S hiss — LOUD',how:'Stressed syllable. Two S sounds around a short IH. Both crisp.'},{syl:'tent',ipa:'/tənt/',type:'voiceless',anchor:'T then schwa then N then T',how:'T: crisp. Schwa: barely heard. N: nasal. T: final crisp finish.'}]},
+  ]},
+  {label:'Level 6',theme:'Your life goals',note:'Portugal, fitness, retirement — words of your actual life.',words:[
+    {word:'Portugal',syl:'POR·choo·gul',ipa:'/ˈpɔːr.tʃʊ.ɡəl/',sounds:[{syl:'POR',ipa:'/pɔːr/',type:'voiceless',anchor:'P then AW in ball then R',how:'P: pop. AW: open and round. R: tongue curls slightly. Stressed.'},{syl:'choo',ipa:'/tʃʊ/',type:'voiceless',anchor:'CH then short OO in book',how:'CH: T then SH together. Short OO: lips round LOOSELY — not the tight long OO.'},{syl:'gul',ipa:'/ɡəl/',type:'voiced',anchor:'G then schwa then L',how:'G: back of throat, voiced. Schwa: barely heard. L: tongue tip to ridge.'}]},
+    {word:'retirement',syl:'ri·TYR·ment',ipa:'/rɪˈtaɪər.mənt/',sounds:[{syl:'ri',ipa:'/rɪ/',type:'approx',anchor:'R then short IH — light',how:'Unstressed start. R: tongue curls. IH: very short.'},{syl:'TYR',ipa:'/taɪər/',type:'voiceless',anchor:'T then EYE glide then R — LOUD',how:'T: crisp. EYE: jaw wide open glide to EE. R: tongue curls. Stressed.'},{syl:'ment',ipa:'/mənt/',type:'nasal',anchor:'M then schwa then N then T',how:'M: lips close. Schwa: barely heard. N: nasal. T: light finish.'}]},
+    {word:'discipline',syl:'DIS·i·plin',ipa:'/ˈdɪs.ɪ.plɪn/',sounds:[{syl:'DIS',ipa:'/dɪs/',type:'voiced',anchor:'D then IH in sit then S hiss',how:'D: tongue tip, voiced. IH: short. S: hiss. Stressed.'},{syl:'i',ipa:'/ɪ/',type:'vowel',anchor:'Very short IH — barely there',how:'Almost skipped in natural speech.'},{syl:'plin',ipa:'/plɪn/',type:'voiceless',anchor:'P then L then short IH then N',how:'P: pop. L: tongue tip to ridge. IH: short. N: nasal finish. The C is silent.'}]},
+    {word:'confidence',syl:'KON·fi·dens',ipa:'/ˈkɒn.fɪ.dəns/',sounds:[{syl:'KON',ipa:'/kɒn/',type:'voiceless',anchor:'K then AW then N',how:'K: back of throat. AW: open round. N: nasal. Stressed.'},{syl:'fi',ipa:'/fɪ/',type:'voiceless',anchor:'F then short IH — light',how:'F: upper teeth on lower lip. IH: very short.'},{syl:'dens',ipa:'/dəns/',type:'voiced',anchor:'D then schwa then N then S',how:'D: tongue tip. Schwa: barely heard. N: nasal. S: hiss finish.'}]},
+    {word:'consistency',syl:'kun·SIS·ten·see',ipa:'/kənˈsɪs.tən.si/',sounds:[{syl:'kun',ipa:'/kən/',type:'voiceless',anchor:'K then schwa then N — light',how:'Unstressed start.'},{syl:'SIS',ipa:'/sɪs/',type:'voiceless',anchor:'S then IH in sit then S — LOUD',how:'Stressed. Two S sounds around IH.'},{syl:'ten',ipa:'/tən/',type:'voiceless',anchor:'T then schwa then N',how:'Light. T: crisp. Schwa: barely heard. N: nasal.'},{syl:'see',ipa:'/si/',type:'voiceless',anchor:'S hiss then EE — light ending',how:'S: hiss. EE: short at end.'}]},
+  ]},
+];
+
+let wordDayIdx=0;
+let expandedWordIdx=null;
+
+function tClass(t){if(t==='voiced')return 'rv';if(t==='voiceless')return 'rvl';if(t==='vowel')return 'rvow';if(t==='nasal')return 'rnas';return '';}
+function tTag(t){const m={voiced:'st-v Voiced',voiceless:'st-vl Voiceless',vowel:'st-vow Vowel',nasal:'st-nas Nasal',approx:'st-app Approximant'};const parts=(m[t]||t).split(' ');return `<span class="stype ${parts[0]}">${parts.slice(1).join(' ')}</span>`;}
+
+function renderWords(){
+  const tabs=document.getElementById('wordDayTabs');
+  tabs.innerHTML='';
+  wordDays.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===wordDayIdx?' active':'');
+    b.textContent=d.label;
+    b.onclick=()=>{wordDayIdx=i;expandedWordIdx=null;renderWords();};
+    tabs.appendChild(b);
+  });
+  const day=wordDays[wordDayIdx];
+  document.getElementById('wordThemeBadge').textContent=day.theme;
+  const done=S.wordsDone[wordDayIdx]||[];
+  const pct=Math.round((done.length/day.words.length)*100);
+  document.getElementById('wProgFill').style.width=pct+'%';
+  document.getElementById('wProgLbl').textContent=done.length+' of '+day.words.length+' practiced';
+  const list=document.getElementById('wordList');
+  list.innerHTML='';
+  const note=document.createElement('div');
+  note.className='level-note';
+  note.innerHTML=`<span style="color:var(--amber);font-weight:600;">${day.theme}</span> — ${day.note}`;
+  list.appendChild(note);
+  day.words.forEach((w,i)=>{
+    const isDone=done.includes(i);
+    const isOpen=expandedWordIdx===i;
+    const card=document.createElement('div');
+    card.className='wcard'+(isDone?' done':'')+(isOpen?' open':'');
+    const syls=w.syl.split('·');
+    const stressIdx=syls.findIndex(s=>s===s.toUpperCase()&&s.length>1);
+    const sylBlocks=syls.map((s,si)=>`<div class="syl-block${si===stressIdx?' stressed':''}"><div class="syl-dot">▲</div><div class="syl-text">${s}</div></div>`).join('');
+    const sndRows=w.sounds.map(s=>`<div class="snd-row ${tClass(s.type)}"><div class="snd-top"><div class="snd-syl">${s.syl}</div><div class="snd-right"><div class="snd-ipa">${s.ipa}</div><div class="snd-anchor">Like <span>${s.anchor}</span></div>${tTag(s.type)}</div></div><div class="snd-how">${s.how}</div></div>`).join('');
+    card.innerHTML=`
+      <div class="wcard-top" onclick="toggleWord(${i})">
+        <div style="flex:1;"><div class="wcard-word">${w.word}</div><div class="wcard-meta"><span class="wcard-syl">${w.syl}</span><span class="wcard-ipa">${w.ipa}</span></div></div>
+        <button class="wcard-check${isDone?' done':''}" onclick="event.stopPropagation();markWord(${i})">${isDone?'✓':''}</button>
+      </div>
+      <div class="wcard-expand">
+        <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">▲ marks the stressed syllable</div>
+        <div class="syl-row">${sylBlocks}</div>
+        <div style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em;margin:10px 0 6px;">Sound by sound</div>
+        <div class="snd-rows">${sndRows}</div>
+        <button class="hear-btn" onclick="speak('${w.word}')">🔊 Hear "${w.word}" spoken slowly</button>
+      </div>`;
+    list.appendChild(card);
+  });
+  const allDone=(done.length>=day.words.length);
+  document.getElementById('wordDoneMsg').style.display=allDone?'block':'none';
+}
+
+function toggleWord(i){expandedWordIdx=expandedWordIdx===i?null:i;renderWords();}
+function markWord(i){
+  if(!S.wordsDone[wordDayIdx])S.wordsDone[wordDayIdx]=[];
+  const arr=S.wordsDone[wordDayIdx];
+  if(arr.includes(i)){S.wordsDone[wordDayIdx]=arr.filter(x=>x!==i);}
+  else{arr.push(i);S.totalWords++;toast('Word practiced! 📖');}
+  save();renderWords();renderHome();
+}
+
+// =========== STT ===========
+const sttPhrases=[
+  'My name is Alex and I am doing well today',
+  'I am working on improving my speech every single day',
+  'I enjoy fitness tennis and healthy eating',
+  'I am building a business and planning to move to Portugal',
+  'I need to organize my apartment and update my wardrobe',
+  'I would like to schedule a meeting for next week',
+  'I am confident in my abilities and ready to grow',
+  'Please can you repeat that I did not understand',
+  'I am looking for new opportunities to connect with people',
+  'My goal is to retire early and live abroad in Portugal',
+  'I work hard every day to become a better version of myself',
+  'Consistency is the most important ingredient in any success',
+  'I am grateful for everything I have and excited about what is coming',
+  'Good communication is a skill I am building every day',
+];
+
+let sttIdx=0;
+let recognition=null;
+let isListening=false;
+
+function renderSTT(){document.getElementById('sttTarget').textContent=sttPhrases[sttIdx];document.getElementById('sttArea').innerHTML='<div class="stt-placeholder">Tap the mic then speak</div>';}
+function nextPhrase(){sttIdx=(sttIdx+1)%sttPhrases.length;renderSTT();}
+function hearTarget(){speak(sttPhrases[sttIdx]);}
+
+function toggleMic(){if(isListening)stopMic();else startMic();}
+function startMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Not available on this browser','#f43f5e');return;}
+  recognition=new SR();recognition.lang='en-US';recognition.continuous=false;recognition.interimResults=true;
+  recognition.onstart=()=>{isListening=true;document.getElementById('micBtn').className='mic-btn mic-on';document.getElementById('micStatus').textContent='Listening...';document.getElementById('sttArea').innerHTML='<div class="stt-placeholder">Speak now...</div>';};
+  recognition.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+    const heard=(final||interim).trim().toLowerCase();
+    const target=sttPhrases[sttIdx].toLowerCase();
+    const score=simScore(heard,target);
+    let cls,lbl;
+    if(score>=0.8){cls='mg';lbl='Excellent clarity ✓';}
+    else if(score>=0.5){cls='mp';lbl='Partially understood — keep going';}
+    else{cls='mb';lbl='Keep practicing — focus on consonants';}
+    document.getElementById('sttArea').innerHTML=`<div class="stt-result">"${heard||'...'}"</div>${final?`<div style="text-align:center;"><span class="match ${cls}">${lbl}</span></div>`:''}`;
+  };
+  recognition.onend=()=>{isListening=false;document.getElementById('micBtn').className='mic-btn mic-idle';document.getElementById('micStatus').textContent='Tap to speak';};
+  recognition.onerror=(e)=>{isListening=false;document.getElementById('micBtn').className='mic-btn mic-idle';document.getElementById('micStatus').textContent='Tap to speak';if(e.error!=='no-speech')toast('Could not hear — try again','#f43f5e');};
+  recognition.start();
+}
+function stopMic(){if(recognition)recognition.stop();isListening=false;document.getElementById('micBtn').className='mic-btn mic-idle';document.getElementById('micStatus').textContent='Tap to speak';}
+function simScore(a,b){const wa=a.split(/\s+/),wb=b.split(/\s+/);let m=0;wa.forEach(w=>{if(wb.includes(w))m++;});return m/Math.max(wa.length,wb.length);}
+
+// =========== SENTENCES ===========
+const senCategories=[
+  {name:'Introductions',items:[
+    {text:'Hi my name is Alex and it is great to meet you.',focus:'H N M — nasal sounds',tip:'Breathe before Hi. Keep Hi short. Stress YOUR NAME clearly.'},
+    {text:'I work in technology and I am always looking to connect with new people.',focus:'K L N clusters',tip:'Technology — stress the NOL syllable. Connect — crisp K at start and end.'},
+    {text:'I am building something exciting and I would love to tell you about it.',focus:'B L D stops',tip:'Building — B then L is tricky, do not merge them. Slow down at building.'},
+    {text:'Nice to meet you. What do you do?',focus:'N M W D',tip:'Shortest sentence, maximum impact. Say it slowly and clearly — do not rush.'},
+  ]},
+  {name:'Business',items:[
+    {text:'I would like to schedule a call to discuss the project in more detail.',focus:'SK D L clusters',tip:'Schedule — SK blend. Discuss — two hard D sounds. Detail — DE then TAIL.'},
+    {text:'Can we set up a meeting for next week to go over the proposal?',focus:'M N PR P',tip:'Meeting — double E, long vowel. Proposal — stress the PO syllable.'},
+    {text:'I have some ideas I think could be really valuable for your business.',focus:'V B L vowels',tip:'Valuable — three syllables, stress VAL. Business — BIZ then ness.'},
+    {text:'Thank you for your time. I will follow up with an email.',focus:'TH F L sounds',tip:'TH in thank — tongue between teeth. Follow — F then L is hard, practice slowly.'},
+  ]},
+  {name:'Everyday',items:[
+    {text:'Could you please repeat that? I want to make sure I understand.',focus:'R P SH ND',tip:'This sentence is your most important tool. Practice until it is automatic.'},
+    {text:'I will take a large coffee with oat milk please.',focus:'L K TH P',tip:'Coffee shops are great practice. Say this phrase slowly and confidently.'},
+    {text:'Excuse me do you know where the nearest station is?',focus:'EX N W ST',tip:'Excuse — EKS then KYOOZ. Nearest — NEER then EST.'},
+    {text:'I am sorry I did not catch that. Could you say it again?',focus:'S K CH sounds',tip:'Sorry — SOR then EE. Catch — K then A wide open then CH.'},
+  ]},
+  {name:'Confidence',items:[
+    {text:'I know exactly what I want and I am working hard to get it.',focus:'EX KN W H',tip:'Exactly — EG then ZAKT then LEE. Project authority with this phrase.'},
+    {text:'I am committed to improving myself every single day.',focus:'K M S D',tip:'Committed — stress the MIT syllable. Improving — IM then PROOV.'},
+    {text:'I believe in what I do and I am proud of how far I have come.',focus:'B L V PR',tip:'Believe — stress LEEV. Proud — PR blend then OW sound.'},
+    {text:'I am open to feedback and I always look for ways to grow.',focus:'F W L G',tip:'Feedback — FEE then BACK. Always — AWL then WAYZ.'},
+  ]},
+];
+
+let senCatIdx=0;
+
+function renderSentences(){
+  const tabs=document.getElementById('senTabs');
+  tabs.innerHTML='';
+  senCategories.forEach((c,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===senCatIdx?' active':'');
+    b.textContent=c.name;
+    b.onclick=()=>{senCatIdx=i;renderSentences();};
+    tabs.appendChild(b);
+  });
+  const content=document.getElementById('senContent');
+  content.innerHTML='';
+  senCategories[senCatIdx].items.forEach(s=>{
+    const card=document.createElement('div');
+    card.className='sen-card';
+    card.innerHTML=`
+      <div class="sen-focus">Focus: ${s.focus}</div>
+      <div class="sen-text">"${s.text}"</div>
+      <div class="sen-tip">${s.tip}</div>
+      <div class="sen-actions">
+        <button class="btn btn-teal btn-sm" onclick="speak('${s.text.replace(/'/g,"\\'")}')">🔊 Hear it</button>
+        <button class="btn btn-secondary btn-sm" onclick="practiceWith('${s.text.replace(/'/g,"\\'")}')">🎤 Practice</button>
+      </div>`;
+    content.appendChild(card);
+  });
+}
+
+function practiceWith(text){
+  goTo('stt');
+  document.getElementById('sttTarget').textContent=text;
+  document.getElementById('sttArea').innerHTML='<div class="stt-placeholder">Tap the mic and speak the sentence above</div>';
+}
+
+// =========== CONFUSED PAIRS ===========
+const confusedPairs=[
+  {title:'OO — two completely different sounds',sub:'good vs food — same spelling, different sound',a:{label:'Short OO',ipa:'/ʊ/',anchor:'OO in book',desc:'Lips round LOOSELY. Short and relaxed. Good, book, look, cook, foot, put, full, could, would, should.',words:['good','book','look','cook','foot','put','full','could']},b:{label:'Long OO',ipa:'/uː/',anchor:'OO in food',desc:'Lips round and push forward TIGHTLY. Long and sustained. Food, moon, blue, move, true, you, do, rule.',words:['food','moon','blue','move','true','you','do','rule']}},
+  {title:'TH — voiced vs voiceless',sub:'think vs the — same spelling, different voice',a:{label:'Voiceless TH',ipa:'/θ/',anchor:'TH in think',desc:'Tongue between teeth. NO voice — just push air. Think, three, math, both, teeth, health, truth, path.',words:['think','three','math','both','teeth','health','truth','path']},b:{label:'Voiced TH',ipa:'/ð/',anchor:'TH in the',desc:'Same tongue position. ADD voice — feel buzz on tongue tip. The, this, that, they, then, with, other.',words:['the','this','that','they','then','with','other','together']}},
+  {title:'E — five completely different sounds',sub:'Same letter, completely different sounds',a:{label:'EE — long E',ipa:'/iː/',anchor:'E in see',desc:'Lips wide spread, tongue high forward. Long. Me, he, she, we, be, these, here, people, even.',words:['me','he','she','we','be','these','here','people']},b:{label:'EH — short E',ipa:'/e/',anchor:'E in bed',desc:'Jaw drops slightly. Short, open. Bed, red, best, ten, said, head, bread, friend.',words:['bed','red','best','ten','said','head','bread','friend']}},
+  {title:'A — multiple sounds',sub:'cat vs calm vs say vs want',a:{label:'Wide AH',ipa:'/æ/',anchor:'A in cat',desc:'Jaw WIDE open, tongue forward and low. Cat, bad, man, back, hand, past, ask, fast.',words:['cat','bad','man','back','hand','past','ask','fast']},b:{label:'AY glide',ipa:'/eɪ/',anchor:'A in say',desc:'Glide from EH up to EE. Say, may, late, name, game, place, face, day, wait.',words:['say','may','late','name','game','place','face','day']}},
+  {title:'Silent letters',sub:'Letters you do not say at all',a:{label:'Silent T',ipa:'',anchor:'T is silent',desc:'Listen, often, fasten, castle, Christmas, whistle, soften — the T is completely silent in all of these.',words:['listen','often','fasten','castle','whistle','soften','hasten','glisten']},b:{label:'Other silent letters',ipa:'',anchor:'K W B H and more',desc:'Know (silent K), write (silent W), lamb (silent B), hour (silent H), knife (silent K), island (silent S).',words:['know','write','lamb','hour','knife','island','honest','answer']}},
+  {title:'Stress changes meaning',sub:'Same word, different stress = different meaning',a:{label:'Noun — stress first syllable',ipa:'',anchor:'REcord, PREsent',desc:'As a noun: stress the FIRST syllable. A REcord (music). A PREsent (gift). A PERmit (document). A REfund.',words:['record','present','permit','refund','protest','progress','project','object']},b:{label:'Verb — stress second syllable',ipa:'',anchor:'reCORD, preSENT',desc:'As a verb: stress the SECOND syllable. To reCORD (make a recording). To preSENT (show). To perMIT (allow).',words:['record','present','permit','refund','protest','progress','project','object']}},
+];
+
+let openPairIdx=null;
+
+function renderPairs(){
+  const content=document.getElementById('pairsContent');
+  content.innerHTML='';
+  confusedPairs.forEach((pair,i)=>{
+    const isOpen=openPairIdx===i;
+    const card=document.createElement('div');
+    card.className='pair-card'+(isOpen?' open':'');
+    card.innerHTML=`
+      <div class="pair-header" onclick="togglePair(${i})">
+        <div><div class="pair-title">${pair.title}</div><div class="pair-sub">${pair.sub}</div></div>
+        <span style="color:var(--dim);font-size:11px;">▾</span>
+      </div>
+      <div class="pair-body">
+        <div class="pair-cols">
+          <div class="pair-col" style="border-top:3px solid var(--teal);">
+            <div class="pair-col-title" style="color:var(--teal);">${pair.a.label}</div>
+            ${pair.a.ipa?`<div class="pair-col-ipa">${pair.a.ipa}</div>`:''}
+            <div class="pair-col-anchor">${pair.a.anchor}</div>
+            <div class="pair-col-desc">${pair.a.desc}</div>
+            <div class="pair-words">${pair.a.words.map(w=>`<button class="pair-word" onclick="speak('${w}')">${w}</button>`).join('')}</div>
+          </div>
+          <div class="pair-col" style="border-top:3px solid var(--rose);">
+            <div class="pair-col-title" style="color:var(--rose);">${pair.b.label}</div>
             ${pair.b.ipa?`<div class="pair-col-ipa">${pair.b.ipa}</div>`,''}
             <div class="pair-col-anchor">${pair.b.anchor}</div>
             <div class="pair-col-desc">${pair.b.desc}</div>
