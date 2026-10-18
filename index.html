@@ -11,7 +11,7 @@
 :root{
   --bg:#EDF1EF; --surface:#FFFFFF; --ink:#1D2A33; --muted:#5B6B74; --line:#CFD8D6;
   --target:#0E7C7B; --target-soft:rgba(14,124,123,.14); --you:#6A4CE0; --you-soft:rgba(106,76,224,.18);
-  --warn:#B3541E; --good:#1F8A4C; --grid:rgba(29,42,51,.08); --sky:#DCEBF2;
+  --warn:#B3541E; --good:#1F8A4C; --grid:rgba(29,42,51,.08); --sky:#DCEBF2; --tongue:#E58A9C; --lip:#CF8F8F; --inside:#4A2630;
   color-scheme:light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -19,13 +19,13 @@
   :root:not([data-theme="light"]){
     --bg:#13202A; --surface:#1B2B37; --ink:#E6EDF0; --muted:#9AAAB3; --line:#2E4250;
     --target:#3BC9C2; --target-soft:rgba(59,201,194,.16); --you:#A58BFF; --you-soft:rgba(165,139,255,.22);
-    --warn:#F0A065; --good:#5FD38F; --grid:rgba(230,237,240,.08); --sky:#1A3445; color-scheme:dark;
+    --warn:#F0A065; --good:#5FD38F; --grid:rgba(230,237,240,.08); --sky:#1A3445; --tongue:#C76B7E; --lip:#A87272; --inside:#2A1218; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#13202A; --surface:#1B2B37; --ink:#E6EDF0; --muted:#9AAAB3; --line:#2E4250;
   --target:#3BC9C2; --target-soft:rgba(59,201,194,.16); --you:#A58BFF; --you-soft:rgba(165,139,255,.22);
-  --warn:#F0A065; --good:#5FD38F; --grid:rgba(230,237,240,.08); --sky:#1A3445; color-scheme:dark;
+  --warn:#F0A065; --good:#5FD38F; --grid:rgba(230,237,240,.08); --sky:#1A3445; --tongue:#C76B7E; --lip:#A87272; --inside:#2A1218; color-scheme:dark;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
@@ -112,6 +112,34 @@ h2{font-size:1.05rem;margin:0 0 8px}
 .words span{display:inline-flex;flex-direction:column;align-items:center}
 .words small{font-size:.9rem;font-weight:400;color:var(--muted)}
 .pcard{cursor:pointer}
+.mrow{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.mrow figure{margin:0;text-align:center}
+.mrow figcaption,.stepstrip figcaption{font-size:.8rem;color:var(--muted)}
+.mouth{display:block;max-width:100%;height:auto}
+.mouth .m-line{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+.mouth .m-thin{fill:none;stroke:var(--line);stroke-width:1.5;stroke-dasharray:3 3}
+.mouth .m-lip{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.mouth .m-teeth{fill:var(--surface);stroke:var(--muted);stroke-width:1.5}
+.mouth .m-tongue{fill:var(--tongue);stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round}
+.mouth .m-dot{fill:var(--target);stroke:var(--surface);stroke-width:1.5}
+.mouth .m-air{fill:none;stroke:var(--target);stroke-width:2.5;stroke-dasharray:6 4}
+.mouth .m-head{fill:var(--target)}
+.mouth .m-hiss{fill:none;stroke:var(--target);stroke-width:2.2;stroke-linecap:round}
+.mouth .m-buzz{fill:none;stroke:var(--you);stroke-width:2.5;stroke-linecap:round}
+.mouth .m-txt{font:bold 13px "Atkinson Hyperlegible",sans-serif;fill:var(--muted)}
+.mouth .m-lipfill{fill:var(--lip)}.mouth .m-inside{fill:var(--inside)}.mouth .m-teethf{fill:#F7F5EF}.mouth .m-tip{fill:var(--tongue)}
+.mdesc{margin:8px 0 0;padding-left:18px;font-size:.92rem}
+.mpair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:600px){.mpair{grid-template-columns:1fr}}
+.stepstrip{display:flex;gap:6px;overflow-x:auto;padding:6px 0 10px}
+.stepstrip figure{margin:0;text-align:center;padding:4px;border-radius:10px;border:2px solid transparent;flex:0 0 auto;cursor:pointer}
+.stepstrip figure.on{border-color:var(--you);background:var(--you-soft)}
+.stepstrip figcaption{font-family:"Noto Sans",sans-serif;font-size:1.15rem;color:var(--ink)}
+.ipaw b{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.wsteps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.wsteps span{padding:4px 10px;border-radius:999px;border:1.5px solid var(--line);font-size:.85rem}
+.wsteps .cur{border-color:var(--you);background:var(--you-soft);font-weight:700}
+.wsteps .done{border-color:var(--good);color:var(--good)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -144,6 +172,7 @@ h2{font-size:1.05rem;margin:0 0 8px}
     <button class="tab" role="tab" data-tab="pairs" aria-selected="false">Pairs</button>
     <button class="tab" role="tab" data-tab="sent" aria-selected="false">Sentences</button>
     <button class="tab" role="tab" data-tab="pitch" aria-selected="false">Pitch</button>
+    <button class="tab" role="tab" data-tab="workout" aria-selected="false">Workout</button>
     <button class="tab" role="tab" data-tab="games" aria-selected="false">Games</button>
   </nav>
 
@@ -167,6 +196,7 @@ h2{font-size:1.05rem;margin:0 0 8px}
           <p class="cue" id="vCue">Press Start, then hold the sound.</p>
           <p class="hint" id="vHint"></p>
         </div>
+        <div class="panel"><h2>Mouth shape</h2><div id="vMouth"></div></div>
         <div class="panel">
           <h2>Pitch</h2>
           <div class="meter"><div class="band" id="vPBand"></div><div class="mark" id="vPMark"></div></div>
@@ -262,6 +292,7 @@ h2{font-size:1.05rem;margin:0 0 8px}
         <div class="panel"><h2>Hold time</h2><p class="readout" id="liveHold" style="font-size:1.1rem">0.0 s</p><div class="chips" id="liveAttempts"></div></div>
       </div>
     </div>
+    <div class="panel" style="margin-top:16px"><h2>Mouth shape</h2><div id="cMouth"></div></div>
   </section>
 
   <!-- PAIRS -->
@@ -285,6 +316,8 @@ h2{font-size:1.05rem;margin:0 0 8px}
         <p class="cue" id="prResult" aria-live="polite"></p>
         <p class="readout" id="prDetail"></p>
         <button class="btn small ghost" id="prNext" style="margin-top:8px">Next word</button>
+        <h2 style="margin-top:18px">Mouth shapes</h2>
+        <div class="mpair" id="prMouth"></div>
       </div>
       <div class="side">
         <div class="panel">
@@ -304,12 +337,19 @@ h2{font-size:1.05rem;margin:0 0 8px}
       <div class="panel">
         <h2>What do you want to say?</h2>
         <textarea id="sText" aria-label="Sentence to practice">Can I have some water, please?</textarea>
+        <div class="row" style="margin-top:8px"><select id="sCat" aria-label="Phrase set"></select></div>
         <div class="samples" id="sSamples"></div>
         <div class="row"><button class="btn small ghost" id="sSay">Hear it</button><span class="readout" id="sIPAstat"></span></div>
         <h2 style="margin-top:14px">How to say it</h2>
-        <p class="hint" style="margin-top:0">Tap any sound symbol to see how to make it. ˈ marks the strongest part of a word.</p>
+        <p class="hint" style="margin-top:0">Tap a word to see its mouth positions in order. Tap a sound symbol to see how to make it. ˈ marks the strongest part of a word.</p>
         <div class="ipa" id="sIPA"></div>
-        <div class="tipbox" id="sTip" hidden><p id="sTipText"></p><button class="btn small" id="sTipGo">Practice this sound</button></div>
+        <div class="tipbox" id="sTip" hidden><p id="sTipText"></p><div id="sTipMouth"></div><button class="btn small" id="sTipGo" style="margin-top:8px">Practice this sound</button></div>
+        <div id="sSteps"></div>
+        <h2 style="margin-top:14px">Rhythm</h2>
+        <p class="hint" style="margin-top:0">Tall blocks are strong syllables: say them louder, longer, and a little higher. Watch the beat, then press Record to compare your rhythm.</p>
+        <div class="cbox" style="height:170px;background:var(--bg)"><canvas id="rhCan" aria-label="Syllable rhythm"></canvas></div>
+        <div class="row" style="margin-top:8px"><button class="btn small ghost" id="rhPlay">Show me the rhythm</button></div>
+        <p class="readout" id="rhScore" style="font-size:1rem"></p>
         <div class="row">
           <button class="btn" id="sRec">Record</button>
           <select id="sModel" aria-label="Listener model">
@@ -367,6 +407,25 @@ h2{font-size:1.05rem;margin:0 0 8px}
           <h2>Your attempts</h2>
           <div class="chips" id="pHist"></div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKOUT -->
+  <section id="tab-workout" role="tabpanel" hidden>
+    <div class="main">
+      <div class="panel">
+        <div class="wsteps" id="wSteps"></div>
+        <p class="cue big" id="wTitle" style="margin:0;min-height:0">Daily voice workout</p>
+        <p class="hint" id="wHow">Five short steps, about 8 minutes. They build breath support, voice strength, and control. Do it once a day.</p>
+        <div class="cbox r21" style="background:var(--bg);margin-top:8px"><canvas id="wCan" aria-label="Your voice during the workout"></canvas></div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="wStart">Start workout</button><button class="btn small ghost" id="wSkip">Skip this step</button></div>
+        <p class="readout" id="wStatus" style="font-size:1rem"></p>
+      </div>
+      <div class="side">
+        <div class="panel"><h2>Today</h2><p class="readout" id="wToday" style="font-size:1rem"></p></div>
+        <div class="panel"><h2>Longest “ahh”, day by day</h2><div class="cbox r21" style="background:var(--bg)"><canvas id="wChart" aria-label="Progress chart"></canvas></div><p class="readout" id="wStreak"></p></div>
+        <div class="panel"><h2>Why this helps</h2><p class="hint" style="margin-top:0">Voice muscles get stronger with short, regular use, like any muscle. A few minutes every day works much better than a long session once a week. Keep it comfortable: stop if anything feels strained.</p></div>
       </div>
     </div>
   </section>
@@ -474,6 +533,93 @@ function loadDict(){
 function sayText(t){try{const u=new SpeechSynthesisUtterance(t);u.lang=accent==='uk'?'en-GB':'en-US';const vv=speechSynthesis.getVoices().find(v=>v.lang.replace('_','-')===u.lang);if(vv)u.voice=vv;u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
 window.sayText=sayText;
 
+/* ---------- mouth diagrams ---------- */
+const ART={};
+const AD=(sym,o)=>{ART[sym]=Object.assign({jaw:.25,lips:'neutral',tb:[.5,.45],tip:'down',contact:'none',velum:'up',voice:true,air:'oral'},o);};
+AD('p',{jaw:.06,lips:'closed',voice:false,air:'stop'});AD('b',{jaw:.06,lips:'closed',air:'stop'});AD('m',{jaw:.06,lips:'closed',velum:'down',air:'nasal'});
+AD('f',{jaw:.08,lips:'labiodental',voice:false,air:'hiss'});AD('v',{jaw:.08,lips:'labiodental',air:'hiss'});
+AD('θ',{jaw:.16,tip:'dental',voice:false,air:'hiss'});AD('ð',{jaw:.16,tip:'dental',air:'hiss'});
+AD('s',{jaw:.05,lips:'spread',tip:'near',tb:[.3,.6],voice:false,air:'hiss'});AD('z',{jaw:.05,lips:'spread',tip:'near',tb:[.3,.6],air:'hiss'});
+AD('ʃ',{jaw:.07,lips:'protrude',tip:'postnear',tb:[.35,.72],voice:false,air:'hiss'});AD('ʒ',{jaw:.07,lips:'protrude',tip:'postnear',tb:[.35,.72],air:'hiss'});
+AD('t',{jaw:.08,tip:'alveolar',contact:'tip',voice:false,air:'stop'});AD('d',{jaw:.08,tip:'alveolar',contact:'tip',air:'stop'});
+AD('n',{jaw:.08,tip:'alveolar',contact:'tip',velum:'down',air:'nasal'});AD('l',{jaw:.16,tip:'alveolar',contact:'tip',air:'lateral'});
+AD('r',{jaw:.16,lips:'round',tip:'curl',tb:[.65,.55]});
+AD('k',{jaw:.14,contact:'back',voice:false,air:'stop'});AD('g',{jaw:.14,contact:'back',air:'stop'});AD('ŋ',{jaw:.14,contact:'back',velum:'down',air:'nasal'});
+AD('tʃ',{jaw:.07,lips:'protrude',tip:'post',contact:'tip',voice:false,air:'affricate'});AD('dʒ',{jaw:.07,lips:'protrude',tip:'post',contact:'tip',air:'affricate'});
+AD('h',{jaw:.4,voice:false,air:'breath'});
+AD('w',{jaw:.1,lips:'protrude',tb:[.85,.85]});AD('j',{jaw:.1,lips:'spread',tb:[.1,.92]});
+const AV=(sym,tb,jaw,lips,o)=>AD(sym,Object.assign({tb,jaw,lips},o||{}));
+AV('i',[.05,.95],.1,'spread');AV('ɪ',[.15,.8],.2,'spread');AV('ɛ',[.15,.55],.35,'neutral');AV('æ',[.15,.2],.7,'spread');
+AV('ʌ',[.55,.4],.45,'neutral');AV('ɑ',[.85,.1],.85,'neutral');AV('ɔ',[.85,.4],.5,'round');AV('ɒ',[.85,.15],.7,'round');
+AV('ʊ',[.75,.75],.25,'round');AV('u',[.85,.95],.15,'protrude');AV('ə',[.5,.5],.3,'neutral');
+AV('ɝ',[.6,.55],.3,'round',{tip:'curl'});AV('ɜː',[.55,.5],.3,'neutral');AV('o',[.8,.6],.25,'round');AV('a',[.4,.1],.8,'neutral');
+ART['ɚ']=ART['ɝ'];ART['e']=ART['ɛ'];ART['iː']=ART['i'];ART['uː']=ART['u'];ART['ɑː']=ART['ɑ'];ART['ɔː']=ART['ɔ'];
+const DIP={'eɪ':['ɛ','ɪ'],'oʊ':['o','ʊ'],'əʊ':['ə','ʊ'],'aɪ':['a','ɪ'],'aʊ':['a','ʊ'],'ɔɪ':['ɔ','ɪ'],'ɪə':['ɪ','ə'],'eə':['ɛ','ə'],'ʊə':['ʊ','ə'],'aɪə':['a','ə'],'aʊə':['a','ə']};
+function normSym(x){if(ART[x]||DIP[x])return x;if(x.length>1&&x.endsWith('r'))return normSym(x.slice(0,-1));return null;}
+function roofY(x){return x<62?80+(62-x)*.25:x<140?80-(x-62)*.1:72+(x-140)*.27;}
+function sideSVG(a,w,label){
+  const J=a.jaw*30,lf={closed:24,round:18,protrude:14,spread:28,neutral:25,labiodental:25}[a.lips];
+  const lt=104+J,llx=a.lips==='labiodental'?36:lf,lly=a.lips==='labiodental'?101:a.lips==='closed'?97:lt-2,my=(95+lly)/2;
+  let o='';
+  o+='<path d="M78 6 Q50 18 44 38 L16 62 Q20 70 32 70" class="m-line"/>';
+  o+='<path d="M30 64 Q100 46 192 62" class="m-thin"/>';
+  o+='<path d="M32 70 Q'+lf+' 74 '+lf+' 91 Q'+(lf+2)+' 96 38 95" class="m-lip"/>';
+  o+='<path d="M38 84 L45 84 L45 100 L39 101 Z" class="m-teeth"/>';
+  o+='<path d="M45 84 Q52 77 62 80 Q100 70 140 72 Q152 74 162 78" class="m-line"/>';
+  o+=a.velum==='down'?'<path d="M162 78 Q173 90 176 108" class="m-line"/>':'<path d="M162 78 Q180 80 192 90" class="m-line"/>';
+  o+='<path d="M194 62 L194 196" class="m-line"/>';
+  o+='<path d="M40 '+lt+' L46 '+lt+' L46 '+(lt+16)+' L41 '+(lt+16)+' Z" class="m-teeth"/>';
+  o+='<path d="M42 '+(lt+2)+' Q'+llx+' '+lly+' '+(llx+1)+' '+(lly+6)+' Q'+(llx-2)+' '+(lt+18)+' 30 '+(lt+26)+' Q36 '+(lt+46)+' 70 '+(150+J*.6)+' Q130 '+(168+J*.3)+' 176 178" class="m-lip"/>';
+  const tp={down:[50,108+J],alveolar:[51,85],near:[53,90],dental:[41,97+J*.5],post:[63,83],postnear:[65,88],curl:[76,84]}[a.tip],tx=tp[0],ty=tp[1];
+  let bx,by;if(a.contact==='back'){bx=152;by=80;}else{bx=72+a.tb[0]*84;const yh=roofY(bx)+7,yl=130+J*.6;by=yl+(yh-yl)*a.tb[1];}
+  const F=[52,118+J];
+  let tg=a.tip==='curl'?'M'+F[0]+' '+F[1]+' Q'+(tx-8)+' '+(ty+14)+' '+(tx-3)+' '+(ty+5)+' Q'+(tx-2)+' '+(ty-1)+' '+tx+' '+ty+' ':'M'+F[0]+' '+F[1]+' Q'+(tx+2)+' '+(ty+10)+' '+tx+' '+ty+' ';
+  tg+='C'+(tx+12)+' '+(ty-2)+' '+(bx-30)+' '+by+' '+bx+' '+by+' C'+(bx+22)+' '+by+' 186 '+(by+30)+' 184 186 Q120 '+(176+J*.3)+' '+F[0]+' '+F[1]+' Z';
+  o+='<path d="'+tg+'" class="m-tongue"/>';
+  if(a.contact==='tip')o+='<circle cx="'+tx+'" cy="'+(ty-1)+'" r="4.5" class="m-dot"/>';
+  if(a.contact==='back')o+='<circle cx="'+bx+'" cy="'+(by-2)+'" r="4.5" class="m-dot"/>';
+  if(a.lips==='closed')o+='<circle cx="'+(lf+1)+'" cy="96" r="4.5" class="m-dot"/>';
+  if(a.lips==='labiodental')o+='<circle cx="40" cy="101" r="4.5" class="m-dot"/>';
+  const head=(x,y)=>'<path d="M'+x+' '+y+' l9 -5 l0 10 z" class="m-head"/>';
+  const hiss='<path d="M6 '+(my-6)+' l8 0 M3 '+my+' l11 0 M6 '+(my+6)+' l8 0" class="m-hiss"/>';
+  if(a.air==='nasal')o+='<path d="M180 100 Q172 70 110 60 Q60 58 22 64" class="m-air"/>'+head(13,64);
+  else if(a.air==='stop'||a.air==='affricate'){o+='<text x="100" y="196" class="m-txt" text-anchor="middle">stop, then release</text>';if(!a.voice&&a.air==='stop')o+=hiss;if(a.air==='affricate')o+=hiss;}
+  else{const dash=a.air==='breath';o+='<path d="M189 176 L189 '+(by+6)+' Q'+bx+' '+(by-16)+' '+(tx+14)+' '+(Math.min(ty,my)-3)+' L22 '+my+'" class="m-air"'+(dash?' style="stroke-dasharray:2 5"':'')+'/>'+head(13,my);if(a.air==='hiss')o+=hiss;}
+  if(a.voice)o+='<path d="M200 138 q4 -5 8 0 t8 0 M200 150 q4 -5 8 0 t8 0 M200 162 q4 -5 8 0 t8 0" class="m-buzz"/>';
+  return '<svg viewBox="0 0 220 200" width="'+w+'" class="mouth" role="img" aria-label="Side view of the mouth'+(label?' for '+label:'')+'">'+o+'</svg>';
+}
+let clipN=0;
+function frontSVG(a,w){
+  const J=a.jaw;let W,H;
+  switch(a.lips){case 'closed':W=64;H=2;break;case 'spread':W=78;H=8+J*44;break;case 'round':W=40;H=20+J*30;break;case 'protrude':W=30;H=18+J*20;break;case 'labiodental':W=62;H=14;break;default:W=62;H=8+J*50;}
+  const id='mc'+(++clipN);let o='<ellipse cx="60" cy="60" rx="'+(W/2+9)+'" ry="'+(H/2+9)+'" class="m-lipfill"/>';
+  if(H<=3)o+='<path d="M'+(60-W/2)+' 60 L'+(60+W/2)+' 60" class="m-lip"/>';
+  else{o+='<clipPath id="'+id+'"><ellipse cx="60" cy="60" rx="'+W/2+'" ry="'+H/2+'"/></clipPath><ellipse cx="60" cy="60" rx="'+W/2+'" ry="'+H/2+'" class="m-inside"/>';
+    if(a.lips!=='round'&&a.lips!=='protrude'||a.jaw>.3)o+='<rect x="'+(60-W/2)+'" y="'+(60-H/2)+'" width="'+W+'" height="'+Math.min(9,H*.45)+'" class="m-teethf" clip-path="url(#'+id+')"/>';
+    if(a.tip==='dental')o+='<ellipse cx="60" cy="'+(60+H*.15)+'" rx="14" ry="5" class="m-tip" clip-path="url(#'+id+')"/>';}
+  if(a.lips==='labiodental')o+='<rect x="'+(60-W/2+8)+'" y="'+(60-6)+'" width="'+(W-16)+'" height="9" rx="2" class="m-teethf"/>';
+  return '<svg viewBox="0 0 120 120" width="'+(w||110)+'" class="mouth" role="img" aria-label="Front view of the lips">'+o+'</svg>';
+}
+function describeArt(a){
+  const L={closed:'Lips pressed together',round:'Lips rounded',protrude:'Lips rounded and pushed forward',spread:'Lips spread, like a small smile',neutral:'Lips relaxed',labiodental:'Top teeth rest on the bottom lip'}[a.lips];
+  let T;
+  if(a.contact==='back')T='Back of the tongue presses against the soft roof at the back of the mouth';
+  else T={alveolar:'Tongue tip touches the ridge just behind the top teeth'+(a.air==='lateral'?'; air flows around the sides of the tongue':''),near:'Tongue tip close to the ridge behind the top teeth, not touching',dental:'Tongue tip lightly between the teeth',post:'Tongue tip touches just behind the ridge',postnear:'Tongue tip raised just behind the ridge, not touching',curl:'Tongue pulled back and bunched, tip curled up, touching nothing'}[a.tip]||('Tongue '+(a.tb[1]>.75?'high':a.tb[1]>.4?'in the middle':'low')+' and '+(a.tb[0]<.35?'forward':a.tb[0]>.65?'pulled back':'centered')+', tip resting behind the bottom teeth');
+  const Jt=a.jaw<.15?'Jaw almost closed':a.jaw<.4?'Jaw slightly open':a.jaw<.7?'Jaw open':'Jaw wide open';
+  const Vt=a.voice?'Voice on: feel a buzz in your throat':'Voice off: no buzz';
+  const At={nasal:'Air goes out through the nose',stop:'Air is stopped completely, then released'+(a.voice?'':' with a puff'),affricate:'Air is stopped, then released into a hiss',hiss:'Air hisses through a narrow gap',breath:'Just breath, like a soft sigh',lateral:'Air flows out of the mouth around the tongue',oral:'Air flows out through the mouth'}[a.air];
+  return [L,T,Jt,Vt,At];
+}
+function mouthHTML(sym,mode){
+  const k=normSym(sym);if(!k)return '<p class="hint">No mouth picture for this sound yet.</p>';
+  if(DIP[k]){const [s1,s2]=DIP[k];
+    if(mode==='small')return '<div class="mrow">'+sideSVG(ART[s1],62,sym)+sideSVG(ART[s2],62,sym)+'</div>';
+    return '<div class="mrow"><figure>'+sideSVG(ART[s1],150,sym)+'<figcaption>Start</figcaption></figure><figure>'+sideSVG(ART[s2],150,sym)+'<figcaption>End</figcaption></figure></div><p class="hint">Start in the first position and glide smoothly to the second, voice on the whole time.</p>';}
+  const a=ART[k];
+  if(mode==='small')return sideSVG(a,84,sym);
+  return '<div class="mrow"><figure>'+sideSVG(a,180,sym)+'<figcaption>Side view</figcaption></figure><figure>'+frontSVG(a,110)+'<figcaption>Front view</figcaption></figure></div><ul class="mdesc">'+describeArt(a).map(t=>'<li>'+t+'</li>').join('')+'</ul>';
+}
+
 /* ---------- voice settings ---------- */
 let voice=store.get('voice','female');$('voice').value=voice;
 const VK={male:'m',female:'f',child:'c'};
@@ -516,10 +662,12 @@ if(navigator.mediaDevices){listMics();if(navigator.mediaDevices.addEventListener
 const E={running:false};
 async function startEngine(){
   if(E.running)return true;
+  let ctx=null;
   try{
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const rp=ctx.resume?ctx.resume():null;
     const stream=await openMic(false);
-    const ctx=new (window.AudioContext||window.webkitAudioContext)();
-    if(ctx.resume)await ctx.resume();
+    if(rp)await rp;if(ctx.state!=='running'&&ctx.resume)await ctx.resume();
     const an=ctx.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=0;
     const src=ctx.createMediaStreamSource(stream);src.connect(an);
     const proc=ctx.createScriptProcessor(1024,1,1);proc.onaudioprocess=onChunk;src.connect(proc);proc.connect(ctx.destination);E.proc=proc;U.active=false;U.pre=[];U.cur=[];
@@ -529,7 +677,7 @@ async function startEngine(){
     if(active==='pairs')prNew();
     requestAnimationFrame(loop);
     return true;
-  }catch(e){micError(e);return false;}
+  }catch(e){try{if(ctx)ctx.close();}catch(_){}micError(e);return false;}
 }
 window.startEngine=startEngine;
 function stopEngine(){
@@ -748,8 +896,9 @@ const vdist=(f1,f2,t)=>Math.hypot(bark(f1)-bark(t.f1),(bark(f2)-bark(t.f2))*.7);
 function vT(i){if(VOWELS[i].d){const e=VOWELS[i].d.e;return vT(typeof e==='number'?e:vIdx(e));}const m=V.mine[VOWELS[i].k];return m?{f1:m[0],f2:m[1],mine:true}:avgT(i);}
 function showMine(){const ks=Object.keys(V.mine);$('vMine').textContent=ks.length?'Personal targets saved for: '+ks.map(k=>{const v=VOWELS.find(x=>x.k===k);return v?'/'+v.ipa+'/':k;}).join(', '):'Using average targets.';}
 showMine();
-function buildVowelPick(){$('vowelPick').innerHTML='';makePicker($('vowelPick'),VOWELS,v=>({a:'/'+v.ipa+'/',b:v.k+', as in '+v.ex+' <span class="ipa-f">'+wordIPA(v.ex)+'</span>'}),i=>{V.idx=i;V.trail=[];$('vHint').textContent=VOWELS[i].tip;V.sm=0;$('vScore').textContent='0';redraw();});}
-buildVowelPick();
+function buildVowelPick(){$('vowelPick').innerHTML='';makePicker($('vowelPick'),VOWELS,v=>({a:'/'+v.ipa+'/',b:v.k+', as in '+v.ex+' <span class="ipa-f">'+wordIPA(v.ex)+'</span>'}),i=>{V.idx=i;V.trail=[];$('vHint').textContent=VOWELS[i].tip;updVMouth();V.sm=0;$('vScore').textContent='0';redraw();});}
+function updVMouth(){$('vMouth').innerHTML=mouthHTML(VOWELS[V.idx].ipa,'full');}
+buildVowelPick();updVMouth();
 const X0=bark(3500),X1=bark(650),Y0=bark(200),Y1=bark(1150);
 function vXY(f1,f2,w,h,p){return [p+(bark(f2)-X0)/(X1-X0)*(w-2*p),p+(bark(f1)-Y0)/(Y1-Y0)*(h-2*p)];}
 function drawVowels(){
@@ -951,6 +1100,7 @@ function selectCons(i){
   if(k==='hiss'){K.idx=i;K.sm=0;$('cScore').textContent='0';setCBands();$('cCue').textContent='Hold the sound steady.';$('cCue').className='cue';}
   else if(k==='pop'){PO.idx=i;setupPop();}
   else{LV.idx=i;setupLive();}
+  $('cMouth').innerHTML=mouthHTML(GROUPS[cg].items[i].ipa,'full');
   redraw();
 }
 function buildConsPick(){const box=$('consPick');box.innerHTML='';makePicker(box,GROUPS[cg].items,t=>({a:'/'+t.ipa+'/',b:t.k+', as in '+t.ex+' <span class="ipa-f">'+wordIPA(t.ex)+'</span>'}),selectCons);selectCons(0);}
@@ -1071,6 +1221,7 @@ const SA=pr=>accent==='uk'&&pr.ua?pr.ua:pr.a,SB=pr=>accent==='uk'&&pr.ub?pr.ub:p
 const PR={idx:0,want:0,correct:0,total:0,streak:0,list:[],lock:false};
 function prSetup(){
   const pr=PAIRS[PR.idx];
+  $('prMouth').innerHTML=[SA(pr),SB(pr)].map(x=>'<div><h2 class="ipa-f">/'+x+'/</h2>'+mouthHTML(x,'full')+'</div>').join('');
   const cap=w=>w==='luke'?'Luke':w;
   $('prA').querySelector('b').textContent=cap(pr.wa);$('prA').querySelector('span').textContent=wordIPA(pr.wa)+'  /'+SA(pr)+'/';
   $('prB').querySelector('b').textContent=cap(pr.wb);$('prB').querySelector('span').textContent=wordIPA(pr.wb)+'  /'+SB(pr)+'/';
@@ -1141,21 +1292,25 @@ function showTip(sym,btn){
   const ph=PHN[sym];document.querySelectorAll('.ph button.sel').forEach(b=>b.classList.remove('sel'));if(btn)btn.classList.add('sel');
   tipSym=sym;$('sTip').hidden=false;
   $('sTipText').innerHTML='<b class="ipa-f" style="font-size:1.3rem">/'+sym+'/</b> as in “'+ph.ex+'” <span class="ipa-f">'+wordIPA(ph.ex)+'</span>. '+ph.tip;
+  $('sTipMouth').innerHTML=mouthHTML(sym,'full');
 }
 $('sTipGo').onclick=()=>{if(tipSym)goPractice(tipSym);};
 function renderIPA(){
-  const box=$('sIPA'),raw=$('sText').value.trim();box.innerHTML='';if(!raw)return;
+  const box=$('sIPA'),raw=$('sText').value.trim();box.innerHTML='';RH.flat=[];RH.nw=0;RH.meas=null;RH.hi=-1;$('rhScore').textContent='';
+  if(!raw){drawRhythm();return;}
   let unknown=0;
   raw.split(/\s+/).forEach(w=>{
     const clean=w.toLowerCase().replace(/[‘’]/g,"'").replace(/[^a-z']/g,'');if(!clean)return;
     const el=document.createElement('div');el.className='ipaw';
-    const b=document.createElement('b');b.textContent=w.replace(/[.,!?;:]+$/,'');el.appendChild(b);
+    const b=document.createElement('b');b.textContent=w.replace(/[.,!?;:]+$/,'');b.title='Show mouth positions';b.onclick=()=>showSteps(clean,b.textContent);el.appendChild(b);
+    const sy=sylsFor(clean);if(sy){const wi=RH.nw++;sy.forEach(x=>RH.flat.push({lab:x.lab,w:x.st===1?1:x.st===2?.6:.35,wi}));}
     const ph=document.createElement('span');ph.className='ph';
     const tk=tokensFor(clean);
     if(tk){ph.append('/');tk.forEach(t=>{if(!t.p){ph.append(t.s);return;}if(PHN[t.s]){const bt=document.createElement('button');bt.textContent=t.s;bt.title='How to make /'+t.s+'/';bt.onclick=()=>showTip(t.s,bt);ph.appendChild(bt);}else ph.append(t.s);});ph.append('/');}
     else{const u=document.createElement('span');u.className='unk';u.textContent='?';ph.appendChild(u);unknown++;}
     el.appendChild(ph);box.appendChild(el);
   });
+  drawRhythm();
   if(unknown&&DICT)$('sIPAstat').textContent=unknown+' word'+(unknown>1?'s':'')+' not in the dictionary (names and new words may be missing).';
   else if(DICT)$('sIPAstat').textContent='';
 }
@@ -1304,17 +1459,185 @@ $('gStart').onclick=async()=>{if(!await startEngine())return;const g=GAMES[G.idx
 function drawGame(){const cv=$('gChart'),c=cv.getContext('2d'),d=dpr();c.clearRect(0,0,cv.width,cv.height);GAMES[G.idx].draw(c,cv.width,cv.height,d);}
 TABS.games={draw:drawGame,frame(fr){const g=GAMES[G.idx];if(G.running&&g.s){g.step(fr,fr.dt);if(g.s.phase==='done'){showGame();$('gScore').textContent=g.id==='sz'?(g.s.sT/Math.max(.1,g.s.zT)).toFixed(2):g.id==='flyer'?g.s.passed:g.s.t.toFixed(1);}}drawGame();}};
 
+/* ---------- word mouth steps ---------- */
+let stepTimer=null;
+function showSteps(word,label){
+  const tk=tokensFor(word),box=$('sSteps');clearTimeout(stepTimer);
+  if(!tk){box.innerHTML='';return;}
+  const ph=tk.filter(t=>t.p).map(t=>t.s);
+  box.innerHTML='<div class="tipbox"><div class="row" style="justify-content:space-between"><b>Mouth positions for “'+label+'” <span class="ipa-f">'+wordIPA(word)+'</span></b><span class="row"><button class="btn small" id="stPlay">Play slowly</button><button class="btn small ghost" id="stHear">Hear it</button></span></div><div class="stepstrip" id="stStrip">'+ph.map((x,i)=>'<figure data-i="'+i+'" data-s="'+x+'">'+mouthHTML(x,'small')+'<figcaption>'+x+'</figcaption></figure>').join('')+'</div><p class="hint" style="margin:0">Tap a picture for details. Move smoothly from one position to the next.</p></div>';
+  box.querySelectorAll('figure').forEach(f=>f.onclick=()=>showTip(f.dataset.s,null));
+  $('stHear').onclick=()=>sayText(label);
+  $('stPlay').onclick=()=>{const figs=[...box.querySelectorAll('figure')];let i=0;clearTimeout(stepTimer);
+    const go=()=>{figs.forEach(f=>f.classList.remove('on'));if(i>=figs.length)return;figs[i].classList.add('on');figs[i].scrollIntoView({block:'nearest',inline:'nearest'});i++;stepTimer=setTimeout(go,900);};go();};
+}
+
+/* ---------- rhythm ---------- */
+const RH={flat:[],nw:0,meas:null,hi:-1};
+const FUNC=new Set("a an the of to in on at for and or but nor is are was were be been am i you he she it we they me him her us them my your his its our their this that these those with from as by can could would should will shall do does did have has had not so if than then there here some any up out into over just me oh".split(' '));
+const VSYM=/^(aɪə|aʊə|eɪ|aɪ|ɔɪ|aʊ|oʊ|əʊ|ɪə|eə|ʊə|iː|uː|ɑː|ɔː|ɜːr|ɜː|ər|i|ɪ|e|ɛ|æ|ʌ|ə|ɑ|ɒ|ɔ|ʊ|u|ɝ|ɚ)$/;
+function sylsFor(w){
+  w=w.toLowerCase().replace(/[‘’]/g,"'");const tk=tokensFor(w);if(!tk)return null;
+  const ph=tk.filter(t=>t.p).map(t=>t.s),vi=[];ph.forEach((x,i)=>{if(VSYM.test(x))vi.push(i);});if(!vi.length)return null;
+  const a=arpa(w),stv=a?a.split(' ').filter(x=>/\d$/.test(x)).map(x=>+x.slice(-1)):[];const fn=FUNC.has(w),syl=[];
+  vi.forEach((v,k)=>{const pv=k?vi[k-1]:-1;let st=pv+1;const cons=v-st;if(k>0&&cons>=2){syl[k-1].lab+=ph[st];st++;}
+    const end=k===vi.length-1?ph.length:v+1;syl.push({lab:ph.slice(st,end).join(''),st:fn?0:vi.length===1?1:(stv.length===vi.length?stv[k]:(k===0?1:0))});});
+  return syl;
+}
+function pearson(a,b){const n=a.length,ma=a.reduce((s,v)=>s+v,0)/n,mb=b.reduce((s,v)=>s+v,0)/n;let num=0,da=0,db=0;for(let i=0;i<n;i++){num+=(a[i]-ma)*(b[i]-mb);da+=(a[i]-ma)**2;db+=(b[i]-mb)**2;}return da&&db?num/Math.sqrt(da*db):0;}
+function drawRhythm(){
+  const cv=$('rhCan');if(!cv)return;const c=cv.getContext('2d'),w=cv.width,h=cv.height,d=dpr();c.clearRect(0,0,w,h);
+  const ex=RH.flat;
+  if(!ex.length){c.fillStyle=C.muted;c.font=(14*d)+'px '+FONT;c.textAlign='center';c.fillText('Type something above to see its rhythm',w/2,h/2);return;}
+  let units=0;ex.forEach((x,i)=>{units+=x.w>=1?1.5:1;if(i&&x.wi!==ex[i-1].wi)units+=.5;});
+  const pl=46*d,pr=6*d,u=(w-pl-pr)/units,rowH=h*.32;let x=pl;
+  c.fillStyle=C.muted;c.font=(12*d)+'px '+FONT;c.textAlign='left';c.fillText('Target',4*d,h*.25);c.fillText('You',4*d,h*.82);
+  ex.forEach((sy,i)=>{
+    if(i&&sy.wi!==ex[i-1].wi)x+=.5*u;const bw=Math.max(2,(sy.w>=1?1.5:1)*u-3*d),th=rowH*sy.w;
+    c.fillStyle=i===RH.hi?C.you:C.target;c.globalAlpha=i===RH.hi?1:.8;c.fillRect(x,h*.38-th,bw,th);c.globalAlpha=1;
+    c.fillStyle=C.ink;c.font=(12*d)+'px "Noto Sans", sans-serif';c.textAlign='center';if(c.measureText(sy.lab).width<bw+4)c.fillText(sy.lab,x+bw/2,h*.38+14*d);
+    if(RH.meas){const mh=rowH*(.2+.8*RH.meas[i]);c.fillStyle=C.you;c.fillRect(x,h*.97-mh,bw,mh);}
+    x+=bw+3*d;
+  });
+  if(!RH.meas){c.fillStyle=C.muted;c.font=(12*d)+'px '+FONT;c.textAlign='center';c.fillText('Record to see your rhythm here',(pl+w)/2,h*.86);}
+}
+$('rhPlay').onclick=()=>{const ex=RH.flat;if(!ex.length)return;let i=0;const step=()=>{if(i>=ex.length){RH.hi=-1;drawRhythm();return;}RH.hi=i;drawRhythm();const dur=ex[i].w>=1?440:ex[i].w>.5?300:220,gap=i+1<ex.length&&ex[i+1].wi!==ex[i].wi?150:40;i++;setTimeout(step,dur+gap);};step();};
+window.analyzeRhythm=function(x,fs){
+  const hop=Math.round(fs*.01),win=Math.round(fs*.025),n=Math.floor((x.length-win)/hop);if(n<10)return [];
+  const db=new Float64Array(n),f0=new Array(n).fill(null);
+  for(let i=0;i<n;i++){let e=0;const s0=i*hop;for(let j=0;j<win;j++){const v=x[s0+j];e+=v*v;}db[i]=10*Math.log10(e/win+1e-12);}
+  let mx=-999;for(let i=0;i<n;i++)mx=Math.max(mx,db[i]);
+  const pw=Math.round(fs*.04);
+  for(let i=0;i<n;i++){if(db[i]<mx-25)continue;const s0=Math.max(0,i*hop+(win>>1)-(pw>>1));if(s0+pw>x.length)continue;const sg=new Float64Array(pw);for(let j=0;j<pw;j++)sg[j]=x[s0+j];f0[i]=detectPitch(sg,fs);}
+  const sm=new Float64Array(n);for(let i=0;i<n;i++){let a=0,c=0;for(let j=-3;j<=3;j++){const k=i+j;if(k>=0&&k<n){a+=db[k];c++;}}sm[i]=a/c;}
+  const pk=[];for(let i=1;i<n-1;i++)if(sm[i]>=sm[i-1]&&sm[i]>sm[i+1]&&sm[i]>mx-20&&f0.slice(Math.max(0,i-4),i+5).some(v=>v))pk.push(i);
+  const out=[];pk.forEach(i=>{const L=out[out.length-1];if(L!=null){let mn=Infinity;for(let k=L;k<=i;k++)mn=Math.min(mn,sm[k]);if(i-L<12||Math.min(sm[L],sm[i])-mn<2){if(sm[i]>sm[L])out[out.length-1]=i;return;}}out.push(i);});
+  return out.map(i=>{const ps=f0.slice(Math.max(0,i-5),i+6).filter(v=>v).sort((a,b)=>a-b);let l=i,r=i;while(l>0&&sm[l-1]>=sm[i]-6)l--;while(r<n-1&&sm[r+1]>=sm[i]-6)r++;return {amp:sm[i],f0:ps.length?ps[ps.length>>1]:null,dur:(r-l+1)*.01};});
+};
+function zs(a){const m=a.reduce((s,v)=>s+v,0)/a.length,sd=Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length)||1;return a.map(v=>(v-m)/sd);}
+window.showRhythm=function(list){
+  const ex=RH.flat;if(!ex.length)return;
+  if(!list||!list.length){RH.meas=null;$('rhScore').textContent='Could not find clear syllables. Try again a little louder.';drawRhythm();return;}
+  const stl=list.map(q=>q.f0?12*Math.log2(q.f0/100):null),known=stl.filter(v=>v!=null),avg=known.length?known.reduce((a,b)=>a+b,0)/known.length:0;
+  const za=zs(list.map(q=>q.amp)),zf=zs(stl.map(v=>v==null?avg:v)),zd=zs(list.map(q=>q.dur)),prom=list.map((q,i)=>.5*za[i]+.3*zf[i]+.2*zd[i]);
+  const E=ex.length,D=prom.length,map=ex.map((_,i)=>prom[D===E?i:Math.round(i*(D-1)/Math.max(1,E-1))]);
+  const mn=Math.min(...map),mx=Math.max(...map);RH.meas=map.map(v=>mx>mn?(v-mn)/(mx-mn):.5);
+  const ev=ex.map(e=>e.w);let msg='';
+  if(E>=2)msg='Rhythm match: '+Math.round(clamp(pearson(ev,RH.meas),0,1)*100)+'%. ';
+  const ie=ev.indexOf(Math.max(...ev)),im=RH.meas.indexOf(Math.max(...RH.meas));
+  msg+=ev[im]>=1?'Your strongest syllable, “'+ex[im].lab+'”, is a strong one. Good!':'You made “'+ex[im].lab+'” strongest. Try making “'+ex[ie].lab+'” stronger: louder, longer, and a little higher.';
+  if(Math.abs(D-E)>Math.max(1,E*.3))msg+=' The app found about '+D+' beats; this has '+E+' syllables, so say each syllable clearly.';
+  $('rhScore').textContent=msg;drawRhythm();
+};
+
+/* ---------- phrase sets ---------- */
+const PHR={'Everyday':['Hello, how are you?','Thank you very much.','Nice to meet you.','See you tomorrow.','What time is it?','Can you help me?'],
+ 'About me':['My name is Sam.','I am deaf.','Please look at me when you talk.','Can you write it down?','I use sign language.','Please speak slowly.'],
+ 'Food':['I would like a cup of coffee.','Can I have the menu, please?','Water, please.','How much is it?','The check, please.','No onions, please.'],
+ 'Health':['I need a doctor.','It hurts here.','I feel sick.','Call nine one one.','Where is the hospital?','I need help.'],
+ 'Getting around':['Where is the bathroom?','Which way to the station?','One ticket, please.','Turn left here.','How far is it?','Is this seat taken?'],
+ 'Tongue practice':['She sells sea shells.','Red leather, yellow leather.','Big black bug.','Thin things and that thing.','Very well, thank you.','Chop cheap chips.']};
+const UKP={'I would like a cup of coffee.':'I would like a cup of tea.','The check, please.':'The bill, please.','Call nine one one.':'Call nine nine nine.','Where is the bathroom?':'Where is the toilet?','Is this seat taken?':'Is this seat free?','Red leather, yellow leather.':'Red lorry, yellow lorry.'};
+const phr=x=>accent==='uk'&&UKP[x]?UKP[x]:x;
+Object.keys(PHR).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent='Phrases: '+k;$('sCat').appendChild(o);});
+$('sCat').onchange=()=>buildSamples();
+function phraseIPA(t){return '/'+t.split(/\s+/).map(w=>wordIPA(w.replace(/[^A-Za-z'’]/g,'')).replace(/\//g,'')).filter(Boolean).join(' ')+'/';}
+
+/* ---------- WORKOUT ---------- */
+const WSTEPS=[
+ {k:'hum',t:'Warm up: hum',how:'Close your lips and hum “mmm” gently for 3 seconds. Do it 3 times. Feel the buzz on your lips and nose.',need:3},
+ {k:'siren',t:'Slide your voice',how:'On “ooo”, slide your voice from low to high and back down, like a siren. Do it 3 times. Stay gentle.',need:3},
+ {k:'hold',t:'Long “ahh”',how:'Take a slow, deep belly breath and hold a steady “ahh” as long as you can, at normal volume. 3 tries; your best counts.',need:3},
+ {k:'volume',t:'Soft, medium, loud',how:'Say “ahh” softly, then at normal volume, then loudly. Hold each level for one second.',need:3},
+ {k:'read',t:'Read aloud',how:'',need:3}
+];
+const W={on:false,step:0,count:0,best:0,range:0,seg:null,quiet:0,hist:[],zone:0,hold:0,phr:[]};
+const ZN=[{n:'Soft',lo:.18,hi:.42},{n:'Medium',lo:.42,hi:.64},{n:'Loud',lo:.64,hi:.95}];
+const dkey=dt=>dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+function wRender(){
+  $('wSteps').innerHTML=WSTEPS.map((x,i)=>'<span class="'+(W.on&&i===W.step?'cur':(W.on&&i<W.step)||(!W.on&&W.step>=WSTEPS.length)?'done':'')+'">'+(i+1)+'. '+x.t+'</span>').join('');
+  if(!W.on)return;const S=WSTEPS[W.step];
+  $('wTitle').textContent=S.t+'  ('+W.count+' of '+S.need+')';
+  if(S.k==='read'){const p=W.phr[Math.min(W.count,2)];$('wHow').innerHTML='Read this out loud, clearly and slowly:<br><b style="font-size:1.3rem">'+p+'</b><br><span class="ipa-f">'+phraseIPA(p)+'</span>';}
+  else $('wHow').textContent=S.how;
+}
+function wSave(done){
+  const log=store.get('wlog',[]),k=dkey(new Date());let e=log.find(x=>x.d===k);if(!e){e={d:k,mpt:0,range:0,done:false};log.push(e);}
+  e.mpt=Math.max(e.mpt,+W.best.toFixed(1));e.range=Math.max(e.range,Math.round(W.range));if(done)e.done=true;
+  log.sort((a,b)=>a.d<b.d?-1:1);store.set('wlog',log.slice(-120));wSummary();drawWChart();
+}
+function wSummary(){
+  const log=store.get('wlog',[]),k=dkey(new Date()),e=log.find(x=>x.d===k);
+  $('wToday').textContent=e?(e.done?'Workout done today. ':'Workout started today. ')+'Longest “ahh”: '+e.mpt+' s. Pitch range: '+e.range+' semitones.':'No workout yet today.';
+  let streak=0;const dt=new Date();if(!(e&&e.done))dt.setDate(dt.getDate()-1);
+  while(true){const x=log.find(q=>q.d===dkey(dt));if(x&&x.done){streak++;dt.setDate(dt.getDate()-1);}else break;}
+  $('wStreak').textContent=streak?'Streak: '+streak+' day'+(streak>1?'s':'')+' in a row.':'Do the workout today to start a streak.';
+}
+function drawWChart(){
+  const cv=$('wChart');if(!cv)return;const c=cv.getContext('2d'),w=cv.width,h=cv.height,d=dpr();c.clearRect(0,0,w,h);
+  const log=store.get('wlog',[]).slice(-14);
+  if(!log.length){c.fillStyle=C.muted;c.font=(13*d)+'px '+FONT;c.textAlign='center';c.fillText('Your daily results will appear here',w/2,h/2);return;}
+  const mx=Math.max(20,...log.map(x=>x.mpt)),pb=18*d,pt=16*d,bw=(w-10*d)/log.length;
+  c.strokeStyle=C.grid;c.lineWidth=d;[10,20].forEach(v=>{const y=h-pb-(v/mx)*(h-pb-pt);c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();c.fillStyle=C.muted;c.font=(10*d)+'px '+FONT;c.textAlign='left';c.fillText(v+' s',2*d,y-2*d);});
+  log.forEach((x,i)=>{const bh=(x.mpt/mx)*(h-pb-pt),bx=5*d+i*bw+bw*.15;c.fillStyle=x.done?C.target:C.line;c.fillRect(bx,h-pb-bh,bw*.7,bh);
+    c.fillStyle=C.muted;c.font=(10*d)+'px '+FONT;c.textAlign='center';c.fillText(x.d.slice(5).replace('-','/'),bx+bw*.35,h-4*d);if(bw>26*d){c.fillStyle=C.ink;c.fillText(x.mpt,bx+bw*.35,h-pb-bh-3*d);}});
+}
+function drawW(){
+  const cv=$('wCan');if(!cv)return;const c=cv.getContext('2d'),w=cv.width,h=cv.height,d=dpr();c.clearRect(0,0,w,h);
+  const H=W.hist,n=240;
+  c.fillStyle=C['you-soft'];H.forEach((q,i)=>{const x=w-(H.length-i)*(w/n),lh=q.l*h*.35;c.fillRect(x,h-lh,w/n+1,lh);});
+  c.strokeStyle=C.you;c.lineWidth=3*d;c.beginPath();let pen=false;
+  H.forEach((q,i)=>{const x=w-(H.length-i)*(w/n);if(q.p==null){pen=false;return;}const y=h*.5-clamp(q.p,-12,12)/12*h*.42;if(pen)c.lineTo(x,y);else c.moveTo(x,y);pen=true;});c.stroke();
+  c.strokeStyle=C.grid;c.lineWidth=d;c.beginPath();c.moveTo(0,h*.5);c.lineTo(w,h*.5);c.stroke();
+  c.fillStyle=C.muted;c.font=(11*d)+'px '+FONT;c.textAlign='left';c.fillText('Pitch line and loudness',6*d,14*d);
+  if(W.on){const S=WSTEPS[W.step];c.textAlign='right';c.fillStyle=C.ink;c.font='bold '+(26*d)+'px '+FONT;c.fillText(W.count+' / '+S.need,w-10*d,32*d);
+    if(S.k==='volume'){const z=ZN[Math.min(W.zone,2)];c.font='bold '+(18*d)+'px '+FONT;c.fillText('Now: '+z.n,w-10*d,58*d);}
+    else if(W.seg){c.font='bold '+(18*d)+'px '+FONT;c.fillText(W.seg.t.toFixed(1)+' s',w-10*d,58*d);}}
+}
+function wNext(){
+  W.step++;W.count=0;W.seg=null;W.zone=0;W.hold=0;
+  if(W.step>=WSTEPS.length){W.on=false;wSave(true);$('wTitle').textContent='Workout complete! Great job.';$('wHow').textContent='Your results are saved. Come back tomorrow to keep your streak going.';$('wStart').textContent='Start again';$('wStatus').textContent='';wRender();return;}
+  $('wStatus').textContent='';wRender();
+}
+function wEval(g){
+  const S=WSTEPS[W.step];let ok=false,msg='';
+  if(S.k==='hum'){ok=g.hum>=2.5;msg=ok?'Nice hum!':'Hold the hum a little longer, with lips closed (3 seconds).';}
+  else if(S.k==='siren'){const r=g.hi-g.lo;W.range=Math.max(W.range,r);ok=r>=5&&g.v>=.8;msg=ok?'Good slide: '+Math.round(r)+' semitones of range.':'Slide further: go a bit lower and a bit higher ('+Math.round(Math.max(0,r))+' semitones so far).';}
+  else if(S.k==='hold'){if(g.v>=1){ok=true;const nb=g.v>W.best;W.best=Math.max(W.best,g.v);msg='Held for '+g.v.toFixed(1)+' s.'+(nb?' New best today!':'');wSave(false);}else msg='Take a deep breath first, then hold the “ahh”.';}
+  else if(S.k==='read'){ok=g.t>=1.2;msg=ok?'Good.':'Say the whole phrase.';}
+  if(ok)W.count++;$('wStatus').textContent=msg;wRender();
+  if(W.count>=S.need){W.on=W.on&&true;setTimeout(()=>{if(W.on)wNext();},900);}
+}
+$('wStart').onclick=async()=>{if(!await startEngine())return;W.on=true;W.step=0;W.count=0;W.best=0;W.range=0;W.seg=null;W.zone=0;W.hold=0;
+  const pool=PHR['Everyday'].concat(PHR['About me']).map(phr);W.phr=[0,1,2].map(()=>pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  $('wStart').textContent='Restart';$('wStatus').textContent='';wRender();};
+$('wSkip').onclick=()=>{if(W.on)wNext();};
+TABS.workout={
+  enter(){wRender();wSummary();},
+  draw(){drawW();drawWChart();},
+  frame(fr){
+    W.hist.push({p:fr.pitch?st(fr.pitch):null,l:fr.lvl});if(W.hist.length>240)W.hist.shift();
+    if(W.on){const S=WSTEPS[W.step],voiced=!!fr.pitch&&fr.rms>.004;
+      if(S.k==='volume'){const z=ZN[W.zone];if(fr.rms>.004&&fr.lvl>=z.lo&&fr.lvl<=z.hi)W.hold+=fr.dt;else W.hold=Math.max(0,W.hold-fr.dt*2);
+        if(W.hold>=1){W.zone++;W.count++;W.hold=0;$('wStatus').textContent=z.n+' done.';wRender();if(W.zone>=3)setTimeout(()=>{if(W.on)wNext();},700);}}
+      else{const on=S.k==='read'?fr.rms>.006:voiced;
+        if(on){if(!W.seg)W.seg={t:0,hum:0,lo:99,hi:-99,v:0};const g=W.seg;g.t+=fr.dt;if(fr.pitch){g.v+=fr.dt;const x=st(fr.pitch);g.lo=Math.min(g.lo,x);g.hi=Math.max(g.hi,x);}if(voiced&&fr.low>.75)g.hum+=fr.dt;W.quiet=0;}
+        else if(W.seg){W.quiet+=fr.dt;if(W.quiet>(S.k==='read'?.9:.5)){const g=W.seg;W.seg=null;W.quiet=0;wEval(g);}}}}
+    drawW();
+  }
+};
+wRender();wSummary();
+
 /* ---------- SENTENCES (UI only; listener in module) ---------- */
-function buildSamples(){$('sSamples').innerHTML='';(accent==='uk'?['Could I have some water, please?','Where is the toilet?','Thank you for your help.','I would like a cup of tea.','What time is it?','See you tomorrow.','My favourite colour is blue.']:['Can I have some water, please?','Where is the bathroom?','Thank you for your help.','I would like a cup of coffee.','What time is it?','See you tomorrow.','My favorite color is blue.'])
-  .forEach(s=>{const b=document.createElement('button');b.textContent=s;b.onclick=()=>{$('sText').value=s;renderIPA();};$('sSamples').appendChild(b);});}
+function buildSamples(){$('sSamples').innerHTML='';PHR[$('sCat').value||'Everyday'].map(phr).forEach(x=>{const b=document.createElement('button');b.textContent=x;b.onclick=()=>{$('sText').value=x;renderIPA();};$('sSamples').appendChild(b);});}
 buildSamples();
-TABS.sent={enter(){renderIPA();loadDict();}};
+TABS.sent={enter(){renderIPA();loadDict();},draw:drawRhythm};
 renderIPA();
 
 function applyAccent(){
   VOWELS.length=0;(accent==='uk'?VOWELS_UK:VOWELS_US).forEach(v=>VOWELS.push(v));
   V.idx=0;V.trail=[];V.traj=[];V.curT=null;V.last=null;$('vSave').disabled=true;V.mine=store.get(mineKey(),{});
-  buildVowelPick();showMine();$('vHint').textContent=VOWELS[0].tip;
+  buildVowelPick();updVMouth();showMine();$('vHint').textContent=VOWELS[0].tip;
   buildPHN();buildConsPick();buildPairPick();prSetup();buildSamples();
   const box=$('pitchPick');const i=[...box.children].findIndex(c=>c.getAttribute('aria-pressed')==='true');$('pPrompt').textContent=fmtPrompt(PEX[Math.max(0,i)].prompt);
   $('sTip').hidden=true;renderIPA();redraw();
@@ -1358,9 +1681,9 @@ async function getModel(id){
   })();
   try{return await models[id];}catch(e){delete models[id];throw e;}
 }
-function record(){
+function record(ac){
   return window.openMic(true).then(stream=>new Promise(res=>{
-    const ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.resume)ac.resume();
+    if(ac.resume)ac.resume();
     const src=ac.createMediaStreamSource(stream),proc=ac.createScriptProcessor(4096,1,1);
     const chunks=[],marks=[];let heard=false,quiet=0,done=false;const t0=performance.now();
     proc.onaudioprocess=e=>{
@@ -1396,15 +1719,17 @@ function pace(rec,nWords){
 let busy=false;const btn=$('sRec');
 btn.onclick=async()=>{
   if(busy)return;busy=true;btn.disabled=true;
+  const ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.resume)ac.resume();
   const target=norm($('sText').value),T=target?target.split(' '):[];
   $('sWords').innerHTML='';$('sHeard').textContent='';
   try{
     const model=await getModel($('sModel').value);
     $('sStatus').textContent=target?'Listening. Say it once.':'Listening. Say anything.';
-    const rec=await record();
+    const rec=await record(ac);
     if(!rec.heard){$('sStatus').textContent='No voice heard. Try again a little louder.';return;}
     $('sStatus').textContent='Checking…';
-    const out=await model(await to16k(rec.chunks,rec.sr));
+    const a16=await to16k(rec.chunks,rec.sr);
+    const out=await model(a16);
     const got=norm((out&&out.text)||''),H=got?got.split(' '):[];
     $('sHeard').textContent='Heard: “'+(got||'nothing')+'”';
     if(T.length){
@@ -1416,11 +1741,12 @@ btn.onclick=async()=>{
       $('sStatus').textContent=sc>=85?'Clearly understood.':sc>=50?'Partly understood. Look at the orange words and try them slowly.':'Hard to understand. Try slower, with clear vowels and endings.';
     }else{$('sStatus').textContent='Done.';}
     $('sPace').textContent=pace(rec,T.length||H.length);
+    if(T.length&&window.showRhythm)window.showRhythm(window.analyzeRhythm(a16,16000));
   }catch(e){
     console.error(e);$('sBar').style.width='0';
     if(e&&e.name&&/NotAllowed|NotFound|NotReadable/.test(e.name)){window.micError(e);$('sStatus').textContent='The microphone did not start. See the message at the top.';}
     else $('sStatus').textContent='The listener could not load here. Use the downloaded copy of this page (speech-sight.html), and be online the first time so the model can download.';
-  }finally{busy=false;btn.disabled=false;}
+  }finally{busy=false;btn.disabled=false;try{if(ac.state!=='closed')ac.close();}catch(_){}}
 };
 </script>
 </body>
