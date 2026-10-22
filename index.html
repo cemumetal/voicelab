@@ -871,13 +871,13 @@ function analyze(){
   let sp=0,sfp=0,sl=0,cnt=0;
   for(let i=lo;i<=hi;i++){const p=Math.pow(10,fb[i]/10);sp+=p;sfp+=p*i*binHz;sl+=Math.log(p+1e-20);cnt++;}
   let tot=0,hf=0,low=0;for(let i=Math.ceil(80/binHz);i<=hi;i++){const p=Math.pow(10,fb[i]/10);tot+=p;if(i*binHz>2000)hf+=p;if(i*binHz<500)low+=p;}
-  return {rms,db,lvl,pitch,f1:fm?fm[0]:null,f2:fm?fm[1]:null,centroid:sp>0?sfp/sp:0,flat:cnt&&sp>0?Math.exp(sl/cnt)/(sp/cnt):0,hfRatio:tot?hf/tot:0,low:tot?low/tot:0,f3:fm?fm[2]:null,fb,binHz,topHz:hi*binHz};
+  return {rms,db,lvl,pitch,f1:fm?fm[0]:null,f2:fm?fm[1]:null,centroid:sp>0?sfp/sp:0,flat:cnt&&sp>0?Math.exp(sl/cnt)/(sp/cnt):0,hfRatio:tot?hf/tot:0,low:tot?low/tot:0,f3:fm?fm[2]:null,fb,tb,binHz,topHz:hi*binHz};
 }
 function loop(ts){
   if(!E.running)return;
   const dt=E.last?Math.min(0.1,(ts-E.last)/1000):0.016;E.last=ts;
   const fr=analyze();fr.dt=dt;
-  const t=TABS[active];if(t&&t.frame)t.frame(fr);
+  const t=TABS[active];if(t&&t.frame){try{t.frame(fr);}catch(err){console.error(err);}}
   requestAnimationFrame(loop);
 }
 
